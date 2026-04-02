@@ -82,14 +82,14 @@ async function renderHistoryTable() {
     : slice.map(p => {
         const isLate = p.status==='Unpaid' && isLatePayment(p.month, p.year);
         return `<tr class="${isLate?'late':''}">
-          <td class="td-id">${p.memberId}</td>
-          <td class="td-name">${escHtml(p.memberName)}${isLate?' <span class="badge badge-warning" style="font-size:.7rem">Late</span>':''}</td>
-          <td>${App.monthName(p.month)}</td>
-          <td>${p.year}</td>
-          <td class="td-amount">${App.formatCurrency(p.amount)}</td>
-          <td><span class="badge badge-${p.status==='Paid'?'success':'danger'}">${p.status}</span></td>
-          <td>${App.formatDate(p.paymentDate)}</td>
-          <td style="color:var(--text-muted);font-size:.8rem">${escHtml(p.notes)||'—'}</td>
+          <td class="td-id" data-label="ID">${p.memberId}</td>
+          <td class="td-name" data-label="Name">${escHtml(p.memberName)}${isLate?' <span class="badge badge-warning" style="font-size:.7rem">Late</span>':''}</td>
+          <td data-label="Month">${App.monthName(p.month)}</td>
+          <td data-label="Year">${p.year}</td>
+          <td class="td-amount" data-label="Amount">${App.formatCurrency(p.amount)}</td>
+          <td data-label="Status"><span class="badge badge-${p.status==='Paid'?'success':'danger'}">${p.status}</span></td>
+          <td data-label="Paid On">${App.formatDate(p.paymentDate)}</td>
+          <td data-label="Notes" style="color:var(--text-muted);font-size:.8rem">${escHtml(p.notes)||'—'}</td>
         </tr>`;
       }).join('');
 

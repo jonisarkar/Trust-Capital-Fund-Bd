@@ -97,14 +97,28 @@ const App = (() => {
       if (toggle) toggle.innerHTML = '▶';
     }
 
-    // nav click
-    document.querySelectorAll('.nav-item[data-page]').forEach(el => {
-      el.addEventListener('click', () => navigate(el.dataset.page));
+    // hamburger for mobile
+    const menuToggle = document.getElementById('menu-toggle');
+    const backdrop   = document.getElementById('sidebar-backdrop');
+    
+    const closeMobileMenu = () => {
+      sidebar.classList.remove('mobile-open');
+      backdrop.classList.remove('active');
+    };
+
+    menuToggle?.addEventListener('click', () => {
+      const isOpen = sidebar.classList.toggle('mobile-open');
+      backdrop.classList.toggle('active', isOpen);
     });
 
-    // hamburger for mobile
-    document.getElementById('menu-toggle')?.addEventListener('click', () => {
-      sidebar.classList.toggle('mobile-open');
+    backdrop?.addEventListener('click', closeMobileMenu);
+
+    // nav click
+    document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+      el.addEventListener('click', () => {
+        navigate(el.dataset.page);
+        if (window.innerWidth <= 1024) closeMobileMenu();
+      });
     });
   }
 

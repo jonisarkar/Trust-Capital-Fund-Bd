@@ -54,9 +54,9 @@ async function renderCollectionsTable() {
   } else {
     tbody.innerHTML = filtered.map(r => `
       <tr>
-        <td class="td-id">${r.memberId}</td>
-        <td class="td-name">${escHtml(r.fullName)}</td>
-        <td style="font-weight:700; color:var(--accent)">${App.formatCurrency(r.monthlyTotal)}</td>
+        <td class="td-id" data-label="ID">${r.memberId}</td>
+        <td class="td-name" data-label="Name">${escHtml(r.fullName)}</td>
+        <td data-label="Total Paid" style="font-weight:700; color:var(--accent)">${App.formatCurrency(r.monthlyTotal)}</td>
       </tr>`).join('');
 
     const sumMonthly = filtered.reduce((s, r) => s + r.monthlyTotal, 0);

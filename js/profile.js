@@ -25,7 +25,7 @@ async function renderProfileHtml(m) {
   
   const initials = (m.fullName||'').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   const avatarHtml = m.photoUrl 
-    ? `<img src="${m.photoUrl}" alt="Photo">`
+    ? `<img src="${m.photoUrl}" alt="Photo" loading="lazy">`
     : `<span>${initials}</span>`;
 
   area.innerHTML = `
@@ -77,8 +77,8 @@ async function renderProfileHtml(m) {
     <div class="profile-section" id="print-hide-images">
       <h3>📸 Identity Documents</h3>
       <div class="profile-images-grid">
-        ${m.nidFrontUrl ? `<div class="profile-img-card"><div class="profile-img-label">NID Front</div><img src="${m.nidFrontUrl}" alt="NID Front" onclick="window.open(this.src)"></div>` : ''}
-        ${m.nidBackUrl ? `<div class="profile-img-card"><div class="profile-img-label">NID Back</div><img src="${m.nidBackUrl}" alt="NID Back" onclick="window.open(this.src)"></div>` : ''}
+        ${m.nidFrontUrl ? `<div class="profile-img-card"><div class="profile-img-label">NID Front</div><img src="${m.nidFrontUrl}" alt="NID Front" loading="lazy" onclick="window.open(this.src)"></div>` : ''}
+        ${m.nidBackUrl ? `<div class="profile-img-card"><div class="profile-img-label">NID Back</div><img src="${m.nidBackUrl}" alt="NID Back" loading="lazy" onclick="window.open(this.src)"></div>` : ''}
       </div>
     </div>
     ` : ''}

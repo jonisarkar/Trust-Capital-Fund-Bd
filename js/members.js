@@ -66,12 +66,12 @@ async function renderMembersTable() {
   } else {
     tbody.innerHTML = slice.map(m => `
       <tr>
-        <td class="td-id">${m.memberId}</td>
-        <td class="td-name">${escHtml(m.fullName)}</td>
-        <td>${escHtml(m.mobile || '—')}</td>
-        <td>${escHtml(m.nid || '—')}</td>
-        <td>${App.formatDate(m.joinDate)}</td>
-        <td><span class="badge badge-${m.status==='Inactive'?'danger':'success'}">${m.status||'Active'}</span></td>
+        <td class="td-id" data-label="ID">${m.memberId}</td>
+        <td class="td-name" data-label="Full Name">${escHtml(m.fullName)}</td>
+        <td data-label="Mobile">${escHtml(m.mobile || '—')}</td>
+        <td data-label="NID">${escHtml(m.nid || '—')}</td>
+        <td data-label="Join Date">${App.formatDate(m.joinDate)}</td>
+        <td data-label="Status"><span class="badge badge-${m.status==='Inactive'?'danger':'success'}">${m.status||'Active'}</span></td>
         <td class="td-actions">
           <button class="action-btn view" onclick="viewMemberProfile(${m.id})">👁 Profile</button>
           <button class="action-btn edit" onclick="openMemberModal(${m.id})">✏️ Edit</button>

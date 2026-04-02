@@ -81,13 +81,13 @@ async function renderMonthlyTable() {
   } else {
     tbody.innerHTML = slice.map(p => `
       <tr>
-        <td class="td-id">${p.memberId}</td>
-        <td class="td-name">${escHtml(p.memberName)}</td>
-        <td style="font-weight:600; font-family:monospace; color:var(--success)">${App.formatCurrency(totalPaidMap[p.memberId] || 0)}</td>
-        <td>${App.monthName(p.month)} ${p.year}</td>
-        <td class="td-amount">${App.formatCurrency(p.amount)}</td>
-        <td><span class="badge badge-${p.status==='Paid'?'success':'danger'}">${p.status}</span></td>
-        <td>${App.formatDate(p.paymentDate)}</td>
+        <td class="td-id" data-label="ID">${p.memberId}</td>
+        <td class="td-name" data-label="Name">${escHtml(p.memberName)}</td>
+        <td data-label="Total Paid" style="font-weight:600; font-family:monospace; color:var(--success)">${App.formatCurrency(totalPaidMap[p.memberId] || 0)}</td>
+        <td data-label="Period">${App.monthName(p.month)} ${p.year}</td>
+        <td class="td-amount" data-label="Amount">${App.formatCurrency(p.amount)}</td>
+        <td data-label="Status"><span class="badge badge-${p.status==='Paid'?'success':'danger'}">${p.status}</span></td>
+        <td data-label="Paid On">${App.formatDate(p.paymentDate)}</td>
         <td class="td-actions print-hide">
           ${p.status === 'Unpaid'
             ? `<button class="action-btn pay" onclick="openMpPayModal(${p.id},'${escHtml(p.memberName)}',${p.amount})">💳 Pay</button>`

@@ -46,6 +46,10 @@
   </div>
 </div>
 
+</div>
+<!-- Sidebar Backdrop for Mobile -->
+<div id="sidebar-backdrop" class="sidebar-backdrop hidden"></div>
+
 <!-- ═══════════════════ APP SHELL ═══════════════════ -->
 <div id="app-shell">
 
@@ -106,7 +110,7 @@
     <!-- PAGE HEADER -->
     <header class="page-header">
       <h1>
-        <button id="menu-toggle" class="btn-icon" style="display:none;margin-right:4px" title="Menu">☰</button>
+        <button id="menu-toggle" class="btn-icon header-menu-toggle" title="Menu">☰</button>
         <span id="page-title">📊 Dashboard</span>
       </h1>
       <div style="display:flex;align-items:center;gap:8px">
@@ -180,7 +184,7 @@
         </div>
         <div class="table-wrapper">
           <div class="table-scroll">
-            <table id="members-table">
+            <table id="members-table" class="table-responsive">
               <thead><tr>
                 <th data-sort="memberId">ID</th>
                 <th data-sort="fullName">Full Name</th>
@@ -230,7 +234,7 @@
         </div>
         <div class="table-wrapper">
           <div class="table-scroll">
-            <table id="coll-table">
+            <table id="coll-table" class="table-responsive">
               <thead><tr>
                 <th>ID</th><th>Name</th><th>Monthly Total Paid</th>
               </tr></thead>
@@ -261,7 +265,7 @@
         <div id="mp-summary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
         <div class="table-wrapper">
           <div class="table-scroll">
-            <table><thead><tr>
+            <table class="table-responsive"><thead><tr>
               <th>ID</th><th>Name</th><th>Total Paid</th><th>Period</th><th>Amount</th><th>Status</th><th>Paid On</th><th class="print-hide">Actions</th>
             </tr></thead>
             <tbody id="mp-tbody"></tbody></table>
@@ -298,7 +302,7 @@
         <div id="hist-summary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
         <div class="table-wrapper">
           <div class="table-scroll">
-            <table><thead id="hist-thead"></thead><tbody id="hist-tbody"></tbody></table>
+            <table class="table-responsive"><thead id="hist-thead"></thead><tbody id="hist-tbody"></tbody></table>
           </div>
           <div class="table-footer">
             <span></span>
