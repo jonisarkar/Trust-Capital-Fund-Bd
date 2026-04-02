@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Offline financial association management system — aRAFAT. Track members, monthly and yearly payments, and export data.">
+  <title>Trust Capital Fund Bd</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/tables.css">
+  <link rel="stylesheet" href="css/modals.css">
+  <link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+
+<!-- ═══════════════════ LOADING ═══════════════════ -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-brand">Trust Capital Fund Bd</div>
+  <div style="font-size:.85rem;color:var(--text-muted)">Loading association data…</div>
+</div>
+
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
+<div id="login-screen" class="hidden">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🏦</div>
+      <h2>Trust Capital</h2>
+      <p>Fund Bd</p>
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="login-password">Admin Password</label>
+        <input type="password" id="login-password" class="form-control" placeholder="Enter password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" id="login-btn" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Sign In →</button>
+    </form>
+    <p style="text-align:center;font-size:.75rem;color:var(--text-muted);margin-top:16px">Default password: <code style="color:var(--accent)">admin123</code></p>
+  </div>
+</div>
+
+<!-- ═══════════════════ APP SHELL ═══════════════════ -->
+<div id="app-shell">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo"><img src="icons/icon-192.png" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></div>
+      <div class="sidebar-name">Trust Capital<span>Fund Bd</span></div>
+    </div>
+
+    <button id="sidebar-toggle" title="Toggle sidebar">◀</button>
+
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a class="nav-item" data-page="dashboard" data-tooltip="Dashboard">
+        <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+      </a>
+
+      <div class="nav-section-label">Management</div>
+      <a class="nav-item" data-page="members" data-tooltip="Members">
+        <span class="nav-icon">👥</span><span class="nav-label">Members</span>
+      </a>
+      <a class="nav-item" data-page="collections" data-tooltip="Collections Report">
+        <span class="nav-icon">📊</span><span class="nav-label">Collections Report</span>
+      </a>
+      <a class="nav-item" data-page="monthly" data-tooltip="Monthly Payments">
+        <span class="nav-icon">📅</span><span class="nav-label">Monthly Payments</span>
+      </a>
+
+      <a class="nav-item" data-page="history" data-tooltip="History">
+        <span class="nav-icon">📜</span><span class="nav-label">History</span>
+      </a>
+
+      <div class="nav-section-label">Data</div>
+      <a class="nav-item" data-page="export" data-tooltip="Export">
+        <span class="nav-icon">⬇️</span><span class="nav-label">Export</span>
+      </a>
+      <a class="nav-item" data-page="import" data-tooltip="Import">
+        <span class="nav-icon">⬆️</span><span class="nav-label">Import</span>
+      </a>
+
+      <div class="nav-section-label">System</div>
+      <a class="nav-item" data-page="settings" data-tooltip="Settings">
+        <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <a class="nav-item" id="logout-btn" data-tooltip="Logout" style="color:var(--danger)">
+        <span class="nav-icon">🚪</span><span class="nav-label">Logout</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main id="main-content">
+
+    <!-- PAGE HEADER -->
+    <header class="page-header">
+      <h1>
+        <button id="menu-toggle" class="btn-icon" style="display:none;margin-right:4px" title="Menu">☰</button>
+        <span id="page-title">📊 Dashboard</span>
+      </h1>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button id="theme-toggle" class="btn-icon" title="Toggle theme">☀️</button>
+        <div style="font-size:.75rem;color:var(--text-muted);padding:0 8px;display:flex;flex-direction:column;align-items:flex-end">
+          <span id="current-time" style="font-variant-numeric:tabular-nums"></span>
+          <span style="color:var(--text-muted);font-size:.7rem">Offline Mode</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══ PAGE: DASHBOARD ═══ -->
+    <section id="page-dashboard" class="page-section">
+      <div class="page-body">
+        <div class="toolbar" style="margin-bottom:20px">
+          <select id="dash-month" class="form-control" style="width:auto"></select>
+          <select id="dash-year"  class="form-control" style="width:auto"></select>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card" style="--stat-color:var(--accent);--stat-bg:var(--accent-glow)">
+            <div class="stat-icon">👥</div>
+            <div class="stat-label">Total Members</div>
+            <div class="stat-value" id="stat-members">—</div>
+            <div class="stat-sub">Registered members</div>
+          </div>
+          <div class="stat-card" style="--stat-color:var(--success);--stat-bg:var(--success-bg)">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Monthly Collection</div>
+            <div class="stat-value" id="stat-month-col">—</div>
+            <div class="stat-sub"><span id="stat-month-paid">—</span> · <span id="stat-month-unpaid">—</span></div>
+          </div>
+
+          <div class="stat-card" style="--stat-color:var(--info);--stat-bg:var(--info-bg)">
+            <div class="stat-icon">🏦</div>
+            <div class="stat-label">Total Collected</div>
+            <div class="stat-value" id="stat-total">—</div>
+            <div class="stat-sub">All-time</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card" style="grid-column:1/-1">
+            <div class="chart-header">
+              <div><div class="chart-title">Monthly Collections</div><div class="chart-sub">Paid vs Unpaid by month</div></div>
+            </div>
+            <canvas id="chart-monthly"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Payment Status</div><div class="chart-sub">This month — Paid vs Unpaid</div></div>
+            </div>
+            <canvas id="chart-donut"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: MEMBERS ═══ -->
+    <section id="page-members" class="page-section">
+      <div class="page-body">
+        <div class="toolbar">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="member-search" placeholder="Search by name, ID, mobile…">
+          </div>
+          <span class="spacer"></span>
+          <span id="member-count" style="font-size:.85rem;color:var(--text-muted)"></span>
+          <button id="add-member-btn" class="btn btn-primary">➕ Add Member</button>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table id="members-table">
+              <thead><tr>
+                <th data-sort="memberId">ID</th>
+                <th data-sort="fullName">Full Name</th>
+                <th data-sort="mobile">Mobile</th>
+                <th data-sort="nid">NID</th>
+                <th data-sort="joinDate">Join Date</th>
+                <th data-sort="status">Status</th>
+                <th>Actions</th>
+              </tr></thead>
+              <tbody id="members-tbody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span></span>
+            <div class="pagination" id="member-pagination"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: MEMBER PROFILE (DEDICATED) ═══ -->
+    <section id="page-member-profile" class="page-section">
+      <div class="page-body">
+        <div class="profile-header-actions" style="display:flex; justify-content:space-between; margin-bottom: 20px;">
+          <button class="btn btn-secondary" onclick="App.navigate('members')">◀ Back to Members</button>
+          <div style="display:flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="window.printProfile()">🖨️ Print</button>
+            <button class="btn btn-primary" onclick="window.exportProfilePDF()">📄 Download PDF</button>
+          </div>
+        </div>
+        <div id="profile-printable-area" class="profile-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: COLLECTIONS REPORT ═══ -->
+    <section id="page-collections" class="page-section">
+      <div class="page-body">
+        <div class="toolbar">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="coll-search" placeholder="Search member…">
+          </div>
+          <span class="spacer"></span>
+          <button class="btn btn-secondary" onclick="window.print()">🖨️ Print Report</button>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table id="coll-table">
+              <thead><tr>
+                <th>ID</th><th>Name</th><th>Monthly Total Paid</th>
+              </tr></thead>
+              <tbody id="coll-tbody"></tbody>
+              <tfoot id="coll-tfoot" style="background:var(--bg-card); font-weight:bold; color:var(--accent)"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: MONTHLY PAYMENTS ═══ -->
+    <section id="page-monthly" class="page-section">
+      <div class="page-body">
+        <div class="toolbar">
+          <select id="mp-month" class="form-control" style="width:auto"></select>
+          <select id="mp-year"  class="form-control" style="width:auto"></select>
+          <select id="mp-status" class="form-control" style="width:auto">
+            <option value="">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+          </select>
+          <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="mp-search" placeholder="Search member…"></div>
+          <span class="spacer"></span>
+          <button class="btn btn-secondary" onclick="window.print()" style="margin-right:8px">🖨️ Print Sheet</button>
+          <button id="mp-gen-btn" class="btn btn-primary">⚡ Generate</button>
+        </div>
+        <div id="mp-summary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table><thead><tr>
+              <th>ID</th><th>Name</th><th>Total Paid</th><th>Period</th><th>Amount</th><th>Status</th><th>Paid On</th><th class="print-hide">Actions</th>
+            </tr></thead>
+            <tbody id="mp-tbody"></tbody></table>
+          </div>
+          <div class="table-footer">
+            <span></span>
+            <div class="pagination" id="mp-pagination"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══ PAGE: HISTORY ═══ -->
+    <section id="page-history" class="page-section">
+      <div class="page-body">
+        <div class="toolbar" style="flex-wrap:wrap">
+          <select id="hist-type" class="form-control" style="width:auto">
+            <option value="monthly">Monthly</option>
+
+          </select>
+          <select id="hist-member" class="form-control" style="width:auto"><option value="">All Members</option></select>
+          <select id="hist-status" class="form-control" style="width:auto">
+            <option value="">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+          </select>
+          <select id="hist-year" class="form-control" style="width:auto"><option value="">All Years</option></select>
+          <span id="hist-month-wrap">
+            <select id="hist-month" class="form-control" style="width:auto"><option value="">All Months</option></select>
+          </span>
+          <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="hist-search" placeholder="Search…"></div>
+        </div>
+        <div id="hist-summary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table><thead id="hist-thead"></thead><tbody id="hist-tbody"></tbody></table>
+          </div>
+          <div class="table-footer">
+            <span></span>
+            <div class="pagination" id="hist-pagination"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: EXPORT ═══ -->
+    <section id="page-export" class="page-section">
+      <div class="page-body">
+        <p style="color:var(--text-secondary);margin-bottom:24px;max-width:600px">Download your data in JSON (full backup) or CSV format compatible with Excel and Google Sheets.</p>
+        <div class="export-grid">
+          <div class="export-card" id="exp-json-btn">
+            <div class="export-icon">🗄️</div>
+            <div class="export-title">Full JSON Backup</div>
+            <div class="export-desc">Members + all payments + settings<br>Re-importable backup</div>
+          </div>
+          <div class="export-card" id="exp-members-btn">
+            <div class="export-icon">👥</div>
+            <div class="export-title">Members CSV</div>
+            <div class="export-desc">All member profiles<br>Excel & Google Sheets ready</div>
+          </div>
+          <div class="export-card" id="exp-monthly-btn">
+            <div class="export-icon">📜</div>
+            <div class="export-title">Payment History CSV</div>
+            <div class="export-desc">All individual payment records<br>Full history with dates</div>
+          </div>
+          <div class="export-card" id="exp-collections-btn">
+            <div class="export-icon">📊</div>
+            <div class="export-title">Collections Report CSV</div>
+            <div class="export-desc">Total paid per member<br>Aggregated summary</div>
+          </div>
+          <div class="export-card" id="exp-monthly-grid-btn">
+            <div class="export-icon">🗓️</div>
+            <div class="export-title">Monthly Payments Grid CSV</div>
+            <div class="export-desc">Members vs Months (Current Year)<br>Matrix format with totals</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: IMPORT ═══ -->
+    <section id="page-import" class="page-section">
+      <div class="page-body">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('tab-json','tab-csv',this)">JSON Backup</button>
+          <button class="tab-btn" onclick="switchTab('tab-csv','tab-json',this)">CSV Members</button>
+        </div>
+
+        <div id="tab-json" class="tab-panel active">
+          <div class="settings-section">
+            <div class="settings-section-title">⬆️ Import JSON Backup</div>
+            <div class="form-group">
+              <label class="form-label">Import Mode</label>
+              <select id="import-mode" class="form-control" style="max-width:280px">
+                <option value="replace">Replace All Data</option>
+                <option value="merge">Merge with Existing</option>
+              </select>
+            </div>
+            <div class="drop-zone" id="json-drop-zone">
+              <input type="file" id="json-file-input" accept=".json">
+              <div class="drop-icon">🗄️</div>
+              <strong>Drop JSON file here or click to browse</strong>
+              <div style="font-size:.8rem;margin-top:6px">Only association-backup-*.json files</div>
+            </div>
+            <div id="json-import-result"></div>
+          </div>
+        </div>
+
+        <div id="tab-csv" class="tab-panel">
+          <div class="settings-section">
+            <div class="settings-section-title">📋 Import Members from CSV</div>
+            <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:16px">
+              CSV must have at minimum a <strong>Name</strong> column. Optional: Mobile, NID, DOB, Address, JoinDate.
+            </p>
+            <div class="drop-zone" id="csv-drop-zone">
+              <input type="file" id="csv-file-input" accept=".csv">
+              <div class="drop-icon">📋</div>
+              <strong>Drop CSV file here or click to browse</strong>
+              <div style="font-size:.8rem;margin-top:6px">UTF-8 encoded CSV file</div>
+            </div>
+            <div id="csv-import-result"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: SETTINGS ═══ -->
+    <section id="page-settings" class="page-section">
+      <div class="page-body" style="max-width:680px">
+
+        <form id="settings-form">
+          <div class="settings-section">
+            <div class="settings-section-title">💰 Contribution Settings</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="s-monthly-amount">Monthly Contribution (৳)</label>
+                <input type="number" id="s-monthly-amount" class="form-control" min="0" step="50">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="s-app-name">Association Name</label>
+                <input type="text" id="s-app-name" class="form-control">
+              </div>
+            </div>
+
+          </div>
+          <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+        </form>
+
+        <br>
+        <form id="password-form">
+          <div class="settings-section">
+            <div class="settings-section-title">🔐 Change Password</div>
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input type="password" id="s-current-pass" class="form-control" autocomplete="current-password">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" id="s-new-pass" class="form-control" autocomplete="new-password">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" id="s-confirm-pass" class="form-control" autocomplete="new-password">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-secondary">🔑 Change Password</button>
+          </div>
+        </form>
+
+        <div class="settings-section" style="border-color:rgba(239,68,68,.3)">
+          <div class="settings-section-title" style="color:var(--danger)">⚠️ Danger Zone</div>
+          <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:16px">Permanently delete all members and payment records. This cannot be undone.</p>
+          <button id="clear-all-btn" class="btn btn-danger">🗑 Clear All Data</button>
+        </div>
+
+      </div>
+    </section>
+
+  </main><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<!-- ═══════════════════ TOAST CONTAINER ═══════════════════ -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════ SLIDE-OVER (Member Profile) ═══════════════════ -->
+<div id="slide-over-overlay">
+  <aside class="slide-over">
+    <div class="slide-over-header">
+      <h3 class="modal-title" id="slide-over-title">Member Profile</h3>
+      <button class="modal-close" id="slide-over-close">✕</button>
+    </div>
+    <div class="slide-over-body" id="slide-over-body"></div>
+  </aside>
+</div>
+
+<!-- ═══════════════════ CONFIRM MODAL ═══════════════════ -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal modal-sm">
+    <div class="modal-body confirm-modal-body" style="padding:32px 24px">
+      <div class="confirm-icon danger">⚠️</div>
+      <h3 id="confirm-title">Confirm</h3>
+      <p id="confirm-message" style="margin-top:8px"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-close">Cancel</button>
+      <button class="btn btn-danger" id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MEMBER MODAL ═══════════════════ -->
+<div class="modal-overlay" id="member-modal">
+  <div class="modal modal-lg" style="max-width:800px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="member-modal-title">➕ Add Member</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body modal-scrollable" style="max-height: 70vh; overflow-y: auto; padding-right: 10px;">
+      <form id="member-form">
+        <input type="hidden" id="member-id-hidden">
+
+        <h4 style="margin:0 0 12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Basic Information</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f-fullName">Full Name *</label>
+            <input type="text" id="f-fullName" class="form-control" placeholder="Enter full name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-mobile">Mobile Number</label>
+            <input type="tel" id="f-mobile" class="form-control" placeholder="01XXXXXXXXX">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f-email">Email (Optional)</label>
+            <input type="email" id="f-email" class="form-control" placeholder="name@domain.com">
+          </div>
+          <div class="form-row" style="gap:8px">
+            <div class="form-group">
+              <label class="form-label" for="f-dob">Date of Birth</label>
+              <input type="date" id="f-dob" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f-gender">Gender</label>
+              <select id="f-gender" class="form-control">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Identity Information</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f-nid">NID Number</label>
+            <input type="text" id="f-nid" class="form-control" placeholder="National ID">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-nid-issue">NID Issue Date</label>
+            <input type="date" id="f-nid-issue" class="form-control">
+          </div>
+        </div>
+
+        <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Family Information</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f-father">Father's Name</label>
+            <input type="text" id="f-father" class="form-control" placeholder="Father's name">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-mother">Mother's Name</label>
+            <input type="text" id="f-mother" class="form-control" placeholder="Mother's name">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-spouse">Spouse Name</label>
+          <input type="text" id="f-spouse" class="form-control" placeholder="Spouse name (if applicable)">
+        </div>
+
+        <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Address Information</h4>
+        <div class="form-group">
+          <label class="form-label" for="f-present-address">Present Address</label>
+          <input type="text" id="f-present-address" class="form-control" placeholder="Present Address">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-permanent-address">Permanent Address</label>
+          <input type="text" id="f-permanent-address" class="form-control" placeholder="Permanent Address">
+        </div>
+
+        <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Membership Info</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f-joinDate">Join Date</label>
+            <input type="date" id="f-joinDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-status">Status</label>
+            <select id="f-status" class="form-control">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">📸 Documents (Image Upload)</h4>
+        <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          <!-- Member Photo -->
+          <div class="form-group">
+            <label class="form-label">Member Photo (JPG/PNG)</label>
+            <div class="image-upload-wrapper" id="wrap-f-photo">
+              <input type="file" id="f-photo" accept="image/png, image/jpeg" style="display:none">
+              <div class="image-preview" id="preview-f-photo" style="border:1px dashed var(--border); border-radius:var(--radius-sm); height:140px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg-card); position:relative; overflow:hidden;">
+                <span class="img-placeholder" style="color:var(--text-muted); pointer-events:none;">Click to upload</span>
+                <img src="" id="img-f-photo" style="display:none; width:100%; height:100%; object-fit:cover;">
+                <button type="button" class="btn-icon btn-danger remove-img-btn" id="rm-f-photo" style="display:none;position:absolute;top:4px;right:4px;width:30px;height:30px;font-size:12px;">✕</button>
+              </div>
+            </div>
+          </div>
+          <!-- NID Front -->
+          <div class="form-group">
+            <label class="form-label">NID Front</label>
+            <div class="image-upload-wrapper" id="wrap-f-nidFront">
+              <input type="file" id="f-nidFront" accept="image/png, image/jpeg" style="display:none">
+              <div class="image-preview" id="preview-f-nidFront" style="border:1px dashed var(--border); border-radius:var(--radius-sm); height:140px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg-card); position:relative; overflow:hidden;">
+                <span class="img-placeholder" style="color:var(--text-muted); pointer-events:none;">Click to upload</span>
+                <img src="" id="img-f-nidFront" style="display:none; width:100%; height:100%; object-fit:cover;">
+                <button type="button" class="btn-icon btn-danger remove-img-btn" id="rm-f-nidFront" style="display:none;position:absolute;top:4px;right:4px;width:30px;height:30px;font-size:12px;">✕</button>
+              </div>
+            </div>
+          </div>
+          <!-- NID Back -->
+          <div class="form-group">
+            <label class="form-label">NID Back</label>
+            <div class="image-upload-wrapper" id="wrap-f-nidBack">
+              <input type="file" id="f-nidBack" accept="image/png, image/jpeg" style="display:none">
+              <div class="image-preview" id="preview-f-nidBack" style="border:1px dashed var(--border); border-radius:var(--radius-sm); height:140px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg-card); position:relative; overflow:hidden;">
+                <span class="img-placeholder" style="color:var(--text-muted); pointer-events:none;">Click to upload</span>
+                <img src="" id="img-f-nidBack" style="display:none; width:100%; height:100%; object-fit:cover;">
+                <button type="button" class="btn-icon btn-danger remove-img-btn" id="rm-f-nidBack" style="display:none;position:absolute;top:4px;right:4px;width:30px;height:30px;font-size:12px;">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="padding:16px 0 0 0; margin-top:20px; border-top:1px solid var(--border)">
+          <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+          <button type="submit" class="btn btn-primary">💾 Save Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MONTHLY PAY MODAL ═══════════════════ -->
+<div class="modal-overlay" id="mp-pay-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">💳 Record Payment</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:16px">Mark payment as <strong>Paid</strong> for <span id="mp-pay-member" style="color:var(--accent)"></span></p>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px">Amount: <strong id="mp-pay-amount"></strong></p>
+      <form id="mp-pay-form">
+        <input type="hidden" id="mp-pay-id">
+        <div class="form-group">
+          <label class="form-label">Payment Date *</label>
+          <input type="date" id="mp-pay-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (optional)</label>
+          <input type="text" id="mp-pay-notes" class="form-control" placeholder="Any note…">
+        </div>
+        <div class="modal-footer" style="padding:0;border:none">
+          <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+          <button type="submit" class="btn btn-success">✅ Mark Paid</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MONTHLY EDIT MODAL ═══════════════════ -->
+<div class="modal-overlay" id="mp-edit-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">✏️ Edit Payment</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="mp-edit-form">
+        <input type="hidden" id="mp-edit-id">
+        <div class="form-group">
+          <label class="form-label">Amount (৳)</label>
+          <input type="number" id="mp-edit-amount" class="form-control" min="0" step="50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <input type="text" id="mp-edit-notes" class="form-control">
+        </div>
+        <div class="modal-footer" style="padding:0;border:none">
+          <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+<script src="lib/dexie.min.js"></script>
+<script src="lib/chart.min.js"></script>
+<script src="lib/html2pdf.bundle.min.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/members.js"></script>
+<script src="js/collections.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/payments.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/history.js"></script>
+<script src="js/export.js"></script>
+<script src="js/import.js"></script>
+<script src="js/settings.js"></script>
+
+<script>
+// ── Global tab switcher ──
+function switchTab(showId, hideId, btn) {
+  document.getElementById(showId).classList.add('active');
+  document.getElementById(hideId).classList.remove('active');
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Live clock ──
+function updateClock() {
+  const el = document.getElementById('current-time');
+  if (el) el.textContent = new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── PWA Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(r => console.log('SW registered'))
+      .catch(e => console.log('SW failed:', e));
+  });
+}
+
+// ── Boot ──
+window.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>
