@@ -7,6 +7,7 @@ let histFilters = { memberId: '', status: '', search: '', year: '', month: '' };
 let histData = [];
 let histPage = 1;
 const HIST_PAGE = 25;
+let histEventsReady = false; // guard: attach listeners only once
 
 async function initHistoryPage() {
   await populateHistMemberDropdown();
@@ -15,6 +16,8 @@ async function initHistoryPage() {
 }
 
 function setupHistoryEvents() {
+  if (histEventsReady) return;  // already wired up — skip
+  histEventsReady = true;
 
   document.getElementById('hist-member')?.addEventListener('change', e => { histFilters.memberId = e.target.value; histPage = 1; renderHistoryTable(); });
   document.getElementById('hist-status')?.addEventListener('change', e => { histFilters.status = e.target.value; histPage = 1; renderHistoryTable(); });
@@ -37,8 +40,13 @@ function setupHistoryEvents() {
 async function populateHistMemberDropdown() {
   const members = await DB.getMembers();
   const sel = document.getElementById('hist-member');
-  if (!sel || sel.options.length > 1) return;
+  if (!sel) return;
+  // Always rebuild so newly added members appear
+  const currentVal = sel.value;
+  while (sel.options.length > 1) sel.remove(1);
   members.forEach(m => sel.add(new Option(`${m.memberId} — ${m.fullName}`, m.memberId)));
+  // Restore previous selection if still valid
+  if (currentVal) sel.value = currentVal;
 }
 
 async function renderHistoryTable() {

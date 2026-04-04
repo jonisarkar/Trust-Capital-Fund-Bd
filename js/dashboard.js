@@ -6,6 +6,7 @@ App.registerPage('dashboard', initDashboard);
 let dashYear  = new Date().getFullYear();
 let dashMonth = new Date().getMonth() + 1;
 let charts    = {};
+let dashEventsReady = false; // guard: attach listeners only once
 
 async function initDashboard() {
   populateDashFilters();
@@ -14,6 +15,8 @@ async function initDashboard() {
 }
 
 function setupDashEvents() {
+  if (dashEventsReady) return;
+  dashEventsReady = true;
   document.getElementById('dash-year')?.addEventListener('change', e => {
     dashYear = parseInt(e.target.value);
     renderDashboard();
@@ -47,10 +50,23 @@ async function renderDashboard() {
 
   document.getElementById('stat-members').textContent      = stats.members;
   document.getElementById('stat-month-col').textContent    = App.formatCurrency(stats.monthCol);
-
   document.getElementById('stat-total').textContent        = App.formatCurrency(stats.totalCollected);
   document.getElementById('stat-month-paid').textContent   = `${stats.monthPaid} paid`;
   document.getElementById('stat-month-unpaid').textContent = `${stats.monthUnpaid} unpaid`;
+
+  // Expenses & Balance cards
+  const expEl = document.getElementById('stat-expenses');
+  if (expEl) expEl.textContent = App.formatCurrency(stats.totalExpenses);
+
+  const balEl   = document.getElementById('stat-balance');
+  const balCard = document.getElementById('stat-balance-card');
+  if (balEl) balEl.textContent = App.formatCurrency(stats.availBalance);
+  if (balCard) {
+    const positive = stats.availBalance >= 0;
+    balCard.style.setProperty('--stat-color', positive ? 'var(--success)' : 'var(--danger)');
+    balCard.style.setProperty('--stat-bg',    positive ? 'var(--success-bg)' : 'rgba(239,68,68,.1)');
+  }
+
 
   await renderCharts(stats);
 }

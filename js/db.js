@@ -10,6 +10,14 @@ db.version(1).stores({
   settings:       'key'
 });
 
+db.version(2).stores({
+  members:        '++id, memberId, fullName, mobile, nid, joinDate',
+  monthlyPayments:'++id, memberId, month, year, status',
+  yearlyPayments: '++id, memberId, year, status',
+  settings:       'key',
+  expenses:       '++id, date, category'
+});
+
 // ============================================================
 // SETTINGS HELPERS
 // ============================================================
@@ -155,6 +163,30 @@ async function updateMonthlyPayment(id, data) {
 }
 
 // ============================================================
+// EXPENSE HELPERS
+// ============================================================
+async function addExpense(data) {
+  const now = new Date().toISOString();
+  return await db.expenses.add({ ...data, createdAt: now, updatedAt: now });
+}
+async function getExpenses(filters = {}) {
+  let all = await db.expenses.toArray();
+  if (filters.search) {
+    const q = filters.search.toLowerCase();
+    all = all.filter(e => e.description?.toLowerCase().includes(q) || e.category?.toLowerCase().includes(q));
+  }
+  if (filters.dateFrom) all = all.filter(e => e.date >= filters.dateFrom);
+  if (filters.dateTo)   all = all.filter(e => e.date <= filters.dateTo);
+  return all.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+async function updateExpense(id, data) {
+  await db.expenses.update(id, { ...data, updatedAt: new Date().toISOString() });
+}
+async function deleteExpense(id) {
+  await db.expenses.delete(id);
+}
+
+// ============================================================
 // DASHBOARD STATS
 // ============================================================
 async function getDashboardStats(year, month) {
@@ -168,7 +200,12 @@ async function getDashboardStats(year, month) {
 
   const totalCollected = mpAll.filter(p=>p.status==='Paid').reduce((s,p)=>s+(p.amount||0),0);
 
-  return { members: membersCount, monthCol, monthPaid, monthUnpaid, totalCollected };
+  // Expense totals for balance calculation
+  const allExpenses   = await db.expenses.toArray();
+  const totalExpenses = allExpenses.reduce((s,e) => s + (parseFloat(e.amount)||0), 0);
+  const availBalance  = totalCollected - totalExpenses;
+
+  return { members: membersCount, monthCol, monthPaid, monthUnpaid, totalCollected, totalExpenses, availBalance };
 }
 
 async function getMonthlyChartData(year) {
@@ -188,11 +225,12 @@ async function exportFullBackup() {
   const members         = await db.members.toArray();
   const monthlyPayments = await db.monthlyPayments.toArray();
   const yearlyPayments  = await db.yearlyPayments.toArray();
+  const expenses        = await db.expenses.toArray();
   const settings        = await getAllSettings();
   
   return {
     metadata: {
-      version: '1.1',
+      version: '2.0',
       exportTimestamp: new Date().toISOString(),
       appName: await getSetting('appName', 'aRAFAT')
     },
@@ -200,6 +238,7 @@ async function exportFullBackup() {
       members,
       monthlyPayments,
       yearlyPayments,
+      expenses,
       settings
     }
   };
@@ -216,6 +255,7 @@ async function importFullBackup(data, mode = 'replace', onProgress) {
     await db.monthlyPayments.clear();
     await db.yearlyPayments.clear();
     await db.settings.clear();
+    if (db.expenses) await db.expenses.clear();
   }
 
   const keys = Object.keys(tables);
@@ -265,6 +305,7 @@ window.DB = {
   getSetting, setSetting, getAllSettings, initSettings,
   addMember, updateMember, deleteMember, getMembers, getNextMemberId,
   ensureMonthlyPayments, getMonthlyPayments, markMonthlyPaid, markMonthlyUnpaid, updateMonthlyPayment,
+  addExpense, getExpenses, updateExpense, deleteExpense,
   getDashboardStats, getMonthlyChartData,
   exportFullBackup, importFullBackup,
   sha256, verifyPassword, changePassword

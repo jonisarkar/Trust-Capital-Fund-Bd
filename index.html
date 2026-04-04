@@ -79,6 +79,10 @@
         <span class="nav-icon">📅</span><span class="nav-label">Monthly Payments</span>
       </a>
 
+      <a class="nav-item" data-page="expenses" data-tooltip="Expenses">
+        <span class="nav-icon">💸</span><span class="nav-label">Expenses</span>
+      </a>
+
       <a class="nav-item" data-page="history" data-tooltip="History">
         <span class="nav-icon">📜</span><span class="nav-label">History</span>
       </a>
@@ -150,6 +154,20 @@
             <div class="stat-value" id="stat-total">—</div>
             <div class="stat-sub">All-time</div>
           </div>
+
+          <div class="stat-card" style="--stat-color:var(--danger);--stat-bg:rgba(239,68,68,.1)">
+            <div class="stat-icon">💸</div>
+            <div class="stat-label">Total Expenses</div>
+            <div class="stat-value" id="stat-expenses">—</div>
+            <div class="stat-sub">All recorded expenses</div>
+          </div>
+
+          <div class="stat-card" id="stat-balance-card" style="--stat-color:var(--success);--stat-bg:var(--success-bg)">
+            <div class="stat-icon">⚖️</div>
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-value" id="stat-balance">—</div>
+            <div class="stat-sub">Collection − Expenses</div>
+          </div>
         </div>
 
         <div class="chart-grid">
@@ -180,6 +198,7 @@
           </div>
           <span class="spacer"></span>
           <span id="member-count" style="font-size:.85rem;color:var(--text-muted)"></span>
+          <button id="members-csv-btn" class="btn btn-secondary">⬇ CSV</button>
           <button id="add-member-btn" class="btn btn-primary">➕ Add Member</button>
         </div>
         <div class="table-wrapper">
@@ -230,6 +249,7 @@
             <input type="text" id="coll-search" placeholder="Search member…">
           </div>
           <span class="spacer"></span>
+          <button id="coll-csv-btn" class="btn btn-secondary">⬇ CSV</button>
           <button class="btn btn-secondary" onclick="window.print()">🖨️ Print Report</button>
         </div>
         <div class="table-wrapper">
@@ -260,6 +280,7 @@
           <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="mp-search" placeholder="Search member…"></div>
           <span class="spacer"></span>
           <button class="btn btn-secondary" onclick="window.print()" style="margin-right:8px">🖨️ Print Sheet</button>
+          <button id="mp-csv-btn" class="btn btn-secondary" style="margin-right:8px">⬇ CSV</button>
           <button id="mp-gen-btn" class="btn btn-primary">⚡ Generate</button>
         </div>
         <div id="mp-summary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
@@ -278,6 +299,67 @@
       </div>
     </section>
 
+
+
+    <!-- ═══ PAGE: EXPENSES ═══ -->
+    <section id="page-expenses" class="page-section">
+      <div class="page-body">
+
+        <!-- Financial Summary Cards -->
+        <div class="stat-grid" style="margin-bottom:24px">
+          <div class="stat-card" style="--stat-color:var(--info);--stat-bg:var(--info-bg)">
+            <div class="stat-icon">🏦</div>
+            <div class="stat-label">Total Collection</div>
+            <div class="stat-value" id="exp-stat-collection">—</div>
+            <div class="stat-sub">All-time payments received</div>
+          </div>
+          <div class="stat-card" style="--stat-color:var(--danger);--stat-bg:rgba(239,68,68,.1)">
+            <div class="stat-icon">💸</div>
+            <div class="stat-label">Total Expenses</div>
+            <div class="stat-value" id="exp-stat-expenses">—</div>
+            <div class="stat-sub">All recorded expenses</div>
+          </div>
+          <div class="stat-card" id="exp-balance-card" style="--stat-color:var(--success);--stat-bg:var(--success-bg)">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-value" id="exp-stat-balance">—</div>
+            <div class="stat-sub">Collection − Expenses</div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar" style="flex-wrap:wrap;gap:8px">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="exp-search" placeholder="Search description or category…">
+          </div>
+          <input type="date" id="exp-date-from" class="form-control" style="width:auto" title="From date">
+          <input type="date" id="exp-date-to"   class="form-control" style="width:auto" title="To date">
+          <button id="exp-reset-filter" class="btn btn-secondary">✕ Reset</button>
+          <span class="spacer"></span>
+          <button id="exp-csv-btn" class="btn btn-secondary">⬇ CSV</button>
+          <button id="exp-add-btn" class="btn btn-primary">➕ Add Expense</button>
+        </div>
+
+        <div id="exp-total-badge" style="margin-bottom:12px"></div>
+
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table class="table-responsive">
+              <thead><tr>
+                <th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th class="print-hide">Actions</th>
+              </tr></thead>
+              <tbody id="exp-tbody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span></span>
+            <div class="pagination" id="exp-pagination"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
 
     <!-- ═══ PAGE: HISTORY ═══ -->
     <section id="page-history" class="page-section">
@@ -500,37 +582,25 @@
             <input type="tel" id="f-mobile" class="form-control" placeholder="01XXXXXXXXX">
           </div>
         </div>
-        <div class="form-row">
+        <div class="form-row" style="gap:8px">
           <div class="form-group">
-            <label class="form-label" for="f-email">Email (Optional)</label>
-            <input type="email" id="f-email" class="form-control" placeholder="name@domain.com">
+            <label class="form-label" for="f-dob">Date of Birth</label>
+            <input type="date" id="f-dob" class="form-control">
           </div>
-          <div class="form-row" style="gap:8px">
-            <div class="form-group">
-              <label class="form-label" for="f-dob">Date of Birth</label>
-              <input type="date" id="f-dob" class="form-control">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="f-gender">Gender</label>
-              <select id="f-gender" class="form-control">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label class="form-label" for="f-gender">Gender</label>
+            <select id="f-gender" class="form-control">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
         </div>
 
         <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Identity Information</h4>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="f-nid">NID Number</label>
-            <input type="text" id="f-nid" class="form-control" placeholder="National ID">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="f-nid-issue">NID Issue Date</label>
-            <input type="date" id="f-nid-issue" class="form-control">
-          </div>
+        <div class="form-group">
+          <label class="form-label" for="f-nid">NID Number</label>
+          <input type="text" id="f-nid" class="form-control" placeholder="National ID">
         </div>
 
         <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Family Information</h4>
@@ -681,6 +751,53 @@
 
 
 
+<!-- ═══════════════════ EXPENSE MODAL ═══════════════════ -->
+<div class="modal-overlay" id="expense-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title" id="exp-modal-title">➕ Add Expense</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="exp-form">
+        <input type="hidden" id="exp-id-hidden">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date *</label>
+            <input type="date" id="exp-f-date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="exp-f-category" class="form-control">
+              <option value="General">General</option>
+              <option value="Rent">Rent</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Event">Event</option>
+              <option value="Office">Office Supplies</option>
+              <option value="Transport">Transport</option>
+              <option value="Food">Food &amp; Refreshment</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description *</label>
+          <input type="text" id="exp-f-description" class="form-control" placeholder="Where and why was the money spent?" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (৳) *</label>
+          <input type="number" id="exp-f-amount" class="form-control" min="1" step="1" placeholder="0" required>
+        </div>
+        <div class="modal-footer" style="padding:16px 0 0 0;border:none">
+          <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+          <button type="submit" class="btn btn-danger">💾 Save Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
 <script src="lib/dexie.min.js"></script>
 <script src="lib/chart.min.js"></script>
@@ -697,6 +814,7 @@
 <script src="js/export.js"></script>
 <script src="js/import.js"></script>
 <script src="js/settings.js"></script>
+<script src="js/expenses.js"></script>
 
 <script>
 // ── Global tab switcher ──

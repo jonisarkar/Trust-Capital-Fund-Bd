@@ -4,6 +4,7 @@
 App.registerPage('collections', initCollectionsPage);
 
 let collSearchQ = '';
+let collEventsReady = false; // guard: attach listeners only once
 
 async function initCollectionsPage() {
   await renderCollectionsTable();
@@ -11,9 +12,22 @@ async function initCollectionsPage() {
 }
 
 function setupCollectionsEvents() {
+  if (collEventsReady) return;  // already wired up — skip
+  collEventsReady = true;
+
   document.getElementById('coll-search')?.addEventListener('input', e => {
     collSearchQ = e.target.value.toLowerCase();
     renderCollectionsTable();
+  });
+
+  document.getElementById('coll-csv-btn')?.addEventListener('click', () => {
+    if (typeof _collFilteredData === 'undefined' || _collFilteredData.length === 0) {
+      App.toast('No data to export', 'warning'); return;
+    }
+    const headers = ['MemberID', 'Name', 'Total Paid (৳)'];
+    const rows = _collFilteredData.map(r => [r.memberId, r.fullName, r.monthlyTotal]);
+    downloadCSV('collections-report.csv', headers, rows);
+    App.toast('CSV downloaded ✅', 'success');
   });
 }
 
@@ -43,6 +57,9 @@ async function renderCollectionsTable() {
       r.memberId.toLowerCase().includes(collSearchQ)
     );
   }
+
+  // Store for CSV export
+  window._collFilteredData = filtered;
 
   const tbody = document.getElementById('coll-tbody');
   const tfoot = document.getElementById('coll-tfoot');

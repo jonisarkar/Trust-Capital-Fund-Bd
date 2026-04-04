@@ -141,6 +141,8 @@
 @media print {
   body {
     background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   #sidebar, #header, .profile-header-actions, .toast-container {
     display: none !important;
@@ -161,4 +163,67 @@
   .profile-img-card {
     break-inside: avoid;
   }
+  .profile-label {
+    font-size: 9pt;
+    color: #555;
+  }
+  .profile-value {
+    font-size: 11pt;
+    color: #111;
+    font-weight: 600;
+  }
+}
+
+/* PDF-mode overrides — applied temporarily during html2pdf capture */
+.pdf-export-mode #profile-printable-area {
+  background: #ffffff !important;
+  color: #111111 !important;
+  padding: 30px !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.pdf-export-mode #profile-printable-area * {
+  color: #111111 !important;
+  border-color: #eee !important;
+  background-color: transparent !important;
+}
+
+.pdf-export-mode .profile-avatar-lg {
+  border-radius: 12px !important;
+  width: 120px !important;
+  height: 160px !important;
+  overflow: hidden !important;
+  border: 2px solid #ddd !important;
+}
+
+.pdf-export-mode .profile-avatar-lg img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+}
+
+.pdf-export-mode .profile-label {
+  font-size: 0.78rem !important;
+  color: #666666 !important;
+  text-transform: uppercase !important;
+}
+
+.pdf-export-mode .profile-value {
+  font-size: 0.97rem !important;
+  color: #111111 !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.pdf-export-mode .profile-section h3 {
+  color: #1e40af !important;
+  border-bottom: 2px solid #1e40af !important;
+}
+
+.pdf-export-mode .badge {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
 }

@@ -8,6 +8,7 @@ let memberSearch = '';
 let memberSort = { col: 'memberId', dir: 'asc' };
 let memberPage = 1;
 const MEMBER_PAGE_SIZE = 15;
+let membersEventsReady = false; // guard: attach listeners only once
 
 async function initMembersPage() {
   await renderMembersTable();
@@ -15,6 +16,9 @@ async function initMembersPage() {
 }
 
 function setupMembersEvents() {
+  if (membersEventsReady) return;  // already wired up — skip
+  membersEventsReady = true;
+
   // Search
   const searchEl = document.getElementById('member-search');
   searchEl?.addEventListener('input', e => {
@@ -26,8 +30,30 @@ function setupMembersEvents() {
   // Add member button
   document.getElementById('add-member-btn')?.addEventListener('click', () => openMemberModal());
 
+  // Inline CSV Export
+  document.getElementById('members-csv-btn')?.addEventListener('click', async () => {
+    const all = await DB.getMembers();
+    if (!all.length) { App.toast('No members to export', 'warning'); return; }
+    const headers = ['MemberID', 'Name', 'Mobile', 'NID', 'DOB', 'Gender', 'Present Address', 'Permanent Address', 'Join Date', 'Status'];
+    const rows = all.map(m => [
+      m.memberId, m.fullName, m.mobile || '', m.nid || '', m.dob || '',
+      m.gender || '',
+      m.presentAddress || m.address || '', m.permanentAddress || '',
+      m.joinDate || '', m.status || 'Active'
+    ]);
+    downloadCSV('members-list.csv', headers, rows);
+    App.toast(`Exported ${all.length} members ✅`, 'success');
+  });
+
   // Form submit
   document.getElementById('member-form')?.addEventListener('submit', saveMember);
+
+  // Prevent Enter key from submitting the form (blocks accidental closure)
+  document.getElementById('member-form')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  });
 
   // Table header sorting
   document.querySelectorAll('#members-table th[data-sort]').forEach(th => {
@@ -107,11 +133,9 @@ async function openMemberModal(id = null) {
     document.getElementById('member-id-hidden').value = id;
     document.getElementById('f-fullName').value   = m.fullName   || '';
     document.getElementById('f-mobile').value     = m.mobile     || '';
-    document.getElementById('f-email').value      = m.email      || '';
     document.getElementById('f-dob').value        = m.dob        || '';
     document.getElementById('f-gender').value     = m.gender     || 'Male';
     document.getElementById('f-nid').value        = m.nid        || '';
-    document.getElementById('f-nid-issue').value  = m.nidIssue   || '';
     document.getElementById('f-father').value     = m.father     || '';
     document.getElementById('f-mother').value     = m.mother     || '';
     document.getElementById('f-spouse').value     = m.spouse     || '';
@@ -201,11 +225,9 @@ async function saveMember(e) {
   const data = {
     fullName :  document.getElementById('f-fullName').value.trim(),
     mobile   :  document.getElementById('f-mobile').value.trim(),
-    email    :  document.getElementById('f-email').value.trim(),
     dob      :  document.getElementById('f-dob').value,
     gender   :  document.getElementById('f-gender').value,
     nid      :  document.getElementById('f-nid').value.trim(),
-    nidIssue :  document.getElementById('f-nid-issue').value,
     father   :  document.getElementById('f-father').value.trim(),
     mother   :  document.getElementById('f-mother').value.trim(),
     spouse   :  document.getElementById('f-spouse').value.trim(),

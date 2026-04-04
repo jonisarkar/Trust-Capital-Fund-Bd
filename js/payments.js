@@ -5,6 +5,7 @@ let mpFilters = { month: new Date().getMonth() + 1, year: new Date().getFullYear
 let mpData = [];
 let mpPage = 1;
 const MP_PAGE = 20;
+let monthlyEventsReady = false; // guard: attach listeners only once
 
 async function initMonthlyPage() {
   // Ensure payments exist for current month
@@ -15,6 +16,8 @@ async function initMonthlyPage() {
 }
 
 function setupMonthlyEvents() {
+  if (monthlyEventsReady) return;  // already wired up — skip
+  monthlyEventsReady = true;
   const $ = id => document.getElementById(id);
   $('mp-month')?.addEventListener('change', async e => {
     mpFilters.month = parseInt(e.target.value); mpPage = 1;
@@ -32,6 +35,19 @@ function setupMonthlyEvents() {
     await DB.ensureMonthlyPayments(mpFilters.year, mpFilters.month);
     App.toast('Payment records generated', 'success');
     renderMonthlyTable();
+  });
+
+  // Inline CSV download for current month view
+  $('mp-csv-btn')?.addEventListener('click', () => {
+    if (!mpData || mpData.length === 0) { App.toast('No data to export', 'warning'); return; }
+    const headers = ['MemberID', 'Name', 'Period', 'Amount', 'Status', 'Paid On', 'Notes'];
+    const rows = mpData.map(p => [
+      p.memberId, p.memberName,
+      `${App.monthName(p.month)} ${p.year}`,
+      p.amount, p.status, p.paymentDate || '', p.notes || ''
+    ]);
+    downloadCSV(`monthly-${App.MONTH_NAMES[mpFilters.month-1]}-${mpFilters.year}.csv`, headers, rows);
+    App.toast('CSV downloaded ✅', 'success');
   });
 
   // Pay modal
@@ -71,8 +87,12 @@ async function renderMonthlyTable() {
     <span class="badge badge-info">💰 Collected: ${App.formatCurrency(totalAmt)}</span>
   `;
 
+  // Build total-paid-per-member map from ALL paid payments (all months)
+  const allMembers = await DB.getMembers();
+  const allPaidMp  = await DB.db.monthlyPayments.where('status').equals('Paid').toArray();
+  const totalPaidMap = {};
   for (const m of allMembers) totalPaidMap[m.memberId] = 0;
-  for (const p of allPaidMp) totalPaidMap[p.memberId] += parseFloat(p.amount) || 0;
+  for (const p of allPaidMp) totalPaidMap[p.memberId] = (totalPaidMap[p.memberId] || 0) + (parseFloat(p.amount) || 0);
 
   const tbody = document.getElementById('mp-tbody');
   if (!tbody) return;
