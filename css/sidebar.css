@@ -350,12 +350,18 @@
     width: 280px;
     transform: translateX(-100%);
     box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: #030c1a; /* solid background to prevent blur glitch */
+  }
+  [data-theme="light"] #sidebar {
+    background: #ffffff;
   }
   #sidebar.mobile-open {
     transform: translateX(0);
     box-shadow: 20px 0 60px rgba(0,0,0,0.4);
   }
-  #sidebar-toggle { display: none; }
+  #sidebar-toggle { display: none !important; }
   .sidebar-name,
   .nav-label,
   .nav-section-label,
