@@ -58,13 +58,16 @@ async function renderDashboard() {
   const expEl = document.getElementById('stat-expenses');
   if (expEl) expEl.textContent = App.formatCurrency(stats.totalExpenses);
 
+  const extraEl = document.getElementById('stat-extra');
+  if (extraEl) extraEl.textContent = App.formatCurrency(stats.totalExtra);
+
   const balEl   = document.getElementById('stat-balance');
   const balCard = document.getElementById('stat-balance-card');
   if (balEl) balEl.textContent = App.formatCurrency(stats.availBalance);
   if (balCard) {
     const positive = stats.availBalance >= 0;
     balCard.style.setProperty('--stat-color', positive ? 'var(--success)' : 'var(--danger)');
-    balCard.style.setProperty('--stat-bg',    positive ? 'var(--success-bg)' : 'rgba(239,68,68,.1)');
+    balCard.style.setProperty('--stat-bg',    positive ? 'var(--success-bg)' : 'var(--danger-bg)');
   }
 
 
@@ -73,11 +76,12 @@ async function renderDashboard() {
 
 async function renderCharts(stats) {
   const isDark = document.documentElement.dataset.theme !== 'light';
-  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-  const textColor = isDark ? '#94a3b8' : '#64748b';
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.07)';
+  const textColor = isDark ? '#8ba3c0' : '#64748b';
 
   Chart.defaults.color = textColor;
   Chart.defaults.borderColor = gridColor;
+  Chart.defaults.font.family = "'Inter', -apple-system, sans-serif";
 
   // Monthly bar chart
   const mData = await DB.getMonthlyChartData(dashYear);
@@ -92,25 +96,32 @@ async function renderCharts(stats) {
           {
             label: 'Paid',
             data: mData.paid,
-            backgroundColor: 'rgba(16,185,129,0.7)',
-            borderColor: '#10b981',
-            borderWidth: 1,
-            borderRadius: 4
+            backgroundColor: 'rgba(0,212,170,0.65)',
+            borderColor: '#00d4aa',
+            borderWidth: 1.5,
+            borderRadius: 6,
+            borderSkipped: false
           },
           {
             label: 'Unpaid',
             data: mData.unpaid,
-            backgroundColor: 'rgba(239,68,68,0.45)',
-            borderColor: '#ef4444',
-            borderWidth: 1,
-            borderRadius: 4
+            backgroundColor: 'rgba(244,63,94,0.4)',
+            borderColor: '#f43f5e',
+            borderWidth: 1.5,
+            borderRadius: 6,
+            borderSkipped: false
           }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        plugins: { legend: { position: 'top' } },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { usePointStyle: true, pointStyleWidth: 10, padding: 16 }
+          }
+        },
         scales: {
           x: { stacked: false, grid: { color: gridColor } },
           y: { stacked: false, grid: { color: gridColor }, ticks: { callback: v => '৳' + v.toLocaleString() } }
@@ -132,18 +143,21 @@ async function renderCharts(stats) {
         labels: ['Paid', 'Unpaid'],
         datasets: [{
           data: [stats.monthPaid, stats.monthUnpaid],
-          backgroundColor: ['rgba(16,185,129,0.8)','rgba(239,68,68,0.7)'],
-          borderColor: ['#10b981','#ef4444'],
+          backgroundColor: ['rgba(0,212,170,0.8)', 'rgba(244,63,94,0.65)'],
+          borderColor: ['#00d4aa', '#f43f5e'],
           borderWidth: 2,
-          hoverOffset: 6
+          hoverOffset: 8
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        cutout: '70%',
+        cutout: '72%',
         plugins: {
-          legend: { position: 'bottom' },
+          legend: {
+            position: 'bottom',
+            labels: { usePointStyle: true, pointStyleWidth: 10, padding: 16 }
+          },
           tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} members (${total ? Math.round(ctx.raw/total*100) : 0}%)` } }
         }
       }

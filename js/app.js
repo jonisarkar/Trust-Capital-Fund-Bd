@@ -86,7 +86,6 @@ const App = (() => {
     toggle?.addEventListener('click', () => {
       const collapsed = sidebar.classList.toggle('collapsed');
       content.classList.toggle('sidebar-collapsed', collapsed);
-      toggle.innerHTML = collapsed ? '▶' : '◀';
       localStorage.setItem('sidebar_collapsed', collapsed);
     });
 
@@ -94,7 +93,6 @@ const App = (() => {
     if (wasCollapsed) {
       sidebar.classList.add('collapsed');
       content.classList.add('sidebar-collapsed');
-      if (toggle) toggle.innerHTML = '▶';
     }
 
     // hamburger for mobile
@@ -183,9 +181,13 @@ const App = (() => {
       await initTheme();
       initHeaderActions();
 
-      // close modals on overlay click
+      // close modals on overlay click (except those with forms to prevent data loss)
       document.addEventListener('click', e => {
-        if (e.target.classList.contains('modal-overlay')) closeAllModals();
+        if (e.target.classList.contains('modal-overlay')) {
+          // Do not close if the modal has a form inside (like Member Modal)
+          if (e.target.querySelector('form')) return;
+          closeAllModals();
+        }
       });
       document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', () => closeAllModals());

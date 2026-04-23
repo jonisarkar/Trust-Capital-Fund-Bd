@@ -18,6 +18,15 @@ db.version(2).stores({
   expenses:       '++id, date, category'
 });
 
+db.version(3).stores({
+  members:        '++id, memberId, fullName, mobile, nid, joinDate',
+  monthlyPayments:'++id, memberId, month, year, status',
+  yearlyPayments: '++id, memberId, year, status',
+  settings:       'key',
+  expenses:       '++id, date, category',
+  extraIncome:    '++id, date, category'
+});
+
 // ============================================================
 // SETTINGS HELPERS
 // ============================================================
@@ -187,6 +196,30 @@ async function deleteExpense(id) {
 }
 
 // ============================================================
+// EXTRA INCOME HELPERS
+// ============================================================
+async function addExtraIncome(data) {
+  const now = new Date().toISOString();
+  return await db.extraIncome.add({ ...data, createdAt: now, updatedAt: now });
+}
+async function getExtraIncomes(filters = {}) {
+  let all = await db.extraIncome.toArray();
+  if (filters.search) {
+    const q = filters.search.toLowerCase();
+    all = all.filter(e => e.description?.toLowerCase().includes(q) || e.category?.toLowerCase().includes(q) || e.source?.toLowerCase().includes(q));
+  }
+  if (filters.dateFrom) all = all.filter(e => e.date >= filters.dateFrom);
+  if (filters.dateTo)   all = all.filter(e => e.date <= filters.dateTo);
+  return all.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+async function updateExtraIncome(id, data) {
+  await db.extraIncome.update(id, { ...data, updatedAt: new Date().toISOString() });
+}
+async function deleteExtraIncome(id) {
+  await db.extraIncome.delete(id);
+}
+
+// ============================================================
 // DASHBOARD STATS
 // ============================================================
 async function getDashboardStats(year, month) {
@@ -200,12 +233,17 @@ async function getDashboardStats(year, month) {
 
   const totalCollected = mpAll.filter(p=>p.status==='Paid').reduce((s,p)=>s+(p.amount||0),0);
 
-  // Expense totals for balance calculation
+  // Expense totals
   const allExpenses   = await db.expenses.toArray();
   const totalExpenses = allExpenses.reduce((s,e) => s + (parseFloat(e.amount)||0), 0);
-  const availBalance  = totalCollected - totalExpenses;
 
-  return { members: membersCount, monthCol, monthPaid, monthUnpaid, totalCollected, totalExpenses, availBalance };
+  // Extra income totals
+  const allExtra      = await db.extraIncome.toArray();
+  const totalExtra    = allExtra.reduce((s,e) => s + (parseFloat(e.amount)||0), 0);
+
+  const availBalance  = totalCollected + totalExtra - totalExpenses;
+
+  return { members: membersCount, monthCol, monthPaid, monthUnpaid, totalCollected, totalExpenses, totalExtra, availBalance };
 }
 
 async function getMonthlyChartData(year) {
@@ -226,11 +264,12 @@ async function exportFullBackup() {
   const monthlyPayments = await db.monthlyPayments.toArray();
   const yearlyPayments  = await db.yearlyPayments.toArray();
   const expenses        = await db.expenses.toArray();
+  const extraIncome     = await db.extraIncome.toArray();
   const settings        = await getAllSettings();
   
   return {
     metadata: {
-      version: '2.0',
+      version: '3.0',
       exportTimestamp: new Date().toISOString(),
       appName: await getSetting('appName', 'aRAFAT')
     },
@@ -239,6 +278,7 @@ async function exportFullBackup() {
       monthlyPayments,
       yearlyPayments,
       expenses,
+      extraIncome,
       settings
     }
   };
@@ -255,7 +295,8 @@ async function importFullBackup(data, mode = 'replace', onProgress) {
     await db.monthlyPayments.clear();
     await db.yearlyPayments.clear();
     await db.settings.clear();
-    if (db.expenses) await db.expenses.clear();
+    if (db.expenses)     await db.expenses.clear();
+    if (db.extraIncome)  await db.extraIncome.clear();
   }
 
   const keys = Object.keys(tables);
@@ -306,6 +347,7 @@ window.DB = {
   addMember, updateMember, deleteMember, getMembers, getNextMemberId,
   ensureMonthlyPayments, getMonthlyPayments, markMonthlyPaid, markMonthlyUnpaid, updateMonthlyPayment,
   addExpense, getExpenses, updateExpense, deleteExpense,
+  addExtraIncome, getExtraIncomes, updateExtraIncome, deleteExtraIncome,
   getDashboardStats, getMonthlyChartData,
   exportFullBackup, importFullBackup,
   sha256, verifyPassword, changePassword

@@ -56,7 +56,12 @@ function setupExpensesEvents() {
 // ---- SUMMARY CARDS ----
 async function renderExpensesSummary() {
   const allPaid    = await DB.db.monthlyPayments.where('status').equals('Paid').toArray();
-  const totalColl  = allPaid.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+  const monthColl  = allPaid.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+
+  // Include extra income in total inflow
+  const allExtra   = await DB.getExtraIncomes();
+  const totalExtra = allExtra.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+  const totalColl  = monthColl + totalExtra;
 
   const allExp     = await DB.getExpenses();
   const totalExp   = allExp.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
@@ -74,7 +79,7 @@ async function renderExpensesSummary() {
   if (balEl)   balEl.textContent = App.formatCurrency(balance);
   if (balCard) {
     balCard.style.setProperty('--stat-color', balance >= 0 ? 'var(--success)' : 'var(--danger)');
-    balCard.style.setProperty('--stat-bg',    balance >= 0 ? 'var(--success-bg)' : 'rgba(239,68,68,.1)');
+    balCard.style.setProperty('--stat-bg',    balance >= 0 ? 'var(--success-bg)' : 'var(--danger-bg)');
   }
 }
 
