@@ -97,7 +97,20 @@
 }
 
 /* ─── Reset ─────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  outline: none !important;
+}
+*:active, *:focus {
+  opacity: 1 !important;
+  filter: none !important;
+  background-color: transparent !important;
+}
 
 html { font-size: 16px; scroll-behavior: smooth; }
 
@@ -110,7 +123,8 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background var(--transition), color var(--transition);
+  overscroll-behavior: none;
+  transition: none !important;
 }
 
 /* ─── Aurora Background Effect ─────────────────────────── */
@@ -153,15 +167,19 @@ body::after {
    ============================================================ */
 .sidebar-backdrop {
   position: fixed; inset: 0;
-  background: rgba(3,13,26,0.7);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 150;
+  background: transparent; /* Requested: transparent */
+  z-index: 40;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
-.sidebar-backdrop.active { opacity: 1; pointer-events: all; }
+.sidebar-backdrop.active { 
+  display: block; 
+  opacity: 1; 
+  visibility: visible;
+  pointer-events: auto;
+}
 
 /* ============================================================
    LAYOUT
@@ -936,4 +954,43 @@ select.form-control option {
   table { width: 100% !important; border-collapse: collapse !important; }
   th, td { border: 1px solid #ccc !important; padding: 8px !important; color: black !important; font-size: 12px !important; }
   .badge { border: 1px solid #000; color: #000 !important; background: transparent !important; }
+}
+
+/* Nuclear Fix for Overlays and Dimming */
+.overlay,
+.sidebar-overlay,
+.backdrop,
+.sidebar-backdrop,
+.modal-overlay,
+#loading-overlay,
+[class*="overlay"],
+[class*="backdrop"] {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: none !important;
+  display: none !important;
+}
+
+/* Re-enable only the essential functionality for active overlays without any visual dimming */
+.sidebar-backdrop.active,
+.modal-overlay.open,
+.modal-overlay.active {
+  display: block !important;
+  opacity: 0 !important;
+  pointer-events: auto !important;
+  background: transparent !important;
+}
+
+/* Force all buttons and interactive elements to never dim */
+button, a, .nav-item, .btn, [role="button"] {
+  -webkit-tap-highlight-color: transparent !important;
+  transition: transform 0.2s ease, color 0.2s ease !important; /* Only non-dimming transitions */
+}
+button:active, a:active, .nav-item:active, .btn:active {
+  opacity: 1 !important;
+  filter: none !important;
+  background: inherit !important;
 }
