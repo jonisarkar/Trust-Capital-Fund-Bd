@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Trust Capital Fund Bd — Offline association management system. Track members, monthly payments, expenses, and export data.">
+  <title>Trust Capital Fund Bd</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00d4aa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/tables.css">
+  <link rel="stylesheet" href="css/modals.css">
+  <link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+
+<!-- ═══════════════════ LOADING ═══════════════════ -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-brand">Trust Capital Fund Bd</div>
+  <div style="font-size:.82rem;color:var(--text-muted);letter-spacing:0.04em">Loading association data…</div>
+</div>
+
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
+<div id="login-screen" class="hidden">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🏦</div>
+      <h2>Trust Capital</h2>
+      <p>Fund Bd</p>
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="login-password">Admin Password</label>
+        <input type="password" id="login-password" class="form-control" placeholder="Enter password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" id="login-btn" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Sign In →</button>
+    </form>
+    <p style="text-align:center;font-size:.75rem;color:var(--text-muted);margin-top:16px">Default password: <code style="color:var(--accent)">admin123</code></p>
+<!-- Sidebar Backdrop for Mobile -->
+<div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo"><img src="icons/icon-192.png" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></div>
+    <div class="sidebar-name">
+      <span class="sidebar-name-primary">Trust Capital</span>
+      <span>Fund Bd</span>
+    </div>
+    <button id="sidebar-toggle" title="Toggle sidebar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="toggle-icon"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+    </button>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <a class="nav-item" href="#dashboard" data-page="dashboard" data-tooltip="Dashboard">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span>
+      <span class="nav-label">Dashboard</span>
+    </a>
+
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item" href="#members" data-page="members" data-tooltip="Members">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <span class="nav-label">Members</span>
+    </a>
+    <a class="nav-item" href="#collections" data-page="collections" data-tooltip="Collections Report">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg></span>
+      <span class="nav-label">Collections Report</span>
+    </a>
+    <a class="nav-item" href="#monthly" data-page="monthly" data-tooltip="Monthly Payments">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg></span>
+      <span class="nav-label">Monthly Payments</span>
+    </a>
+
+    <a class="nav-item" href="#expenses" data-page="expenses" data-tooltip="Expenses">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17V7"/></svg></span>
+      <span class="nav-label">Expenses</span>
+    </a>
+
+    <a class="nav-item" href="#extras" data-page="extras" data-tooltip="Extra Collections">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg></span>
+      <span class="nav-label">Extra Collections</span>
+    </a>
+
+    <a class="nav-item" href="#history" data-page="history" data-tooltip="History">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></span>
+      <span class="nav-label">History</span>
+    </a>
+
+    <div class="nav-section-label">Data</div>
+    <a class="nav-item" href="#export" data-page="export" data-tooltip="Export">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+      <span class="nav-label">Export</span>
+    </a>
+    <a class="nav-item" href="#import" data-page="import" data-tooltip="Import">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+      <span class="nav-label">Import</span>
+    </a>
+
+    <div class="nav-section-label">System</div>
+    <a class="nav-item" href="#settings" data-page="settings" data-tooltip="Settings">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="nav-label">Settings</span>
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-profile">
+      <div class="profile-avatar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="profile-info">
+        <span class="profile-name">Admin User</span>
+        <span class="profile-role">Workspace</span>
+      </div>
+      <button class="profile-logout-btn" id="logout-btn" title="Logout">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" cy="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ═══════════════════ APP SHELL ═══════════════════ -->
+<div id="app-shell">
+
+    <!-- PAGE HEADER -->
+    <header class="page-header">
+      <h1>
+        <button id="menu-toggle" class="btn-icon header-menu-toggle" title="Menu">☰</button>
+        <span id="page-title">📊 Dashboard</span>
+      </h1>
+      <div class="header-right">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;padding:0 4px">
+          <span id="current-time" style="font-size:.78rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-secondary);letter-spacing:0.02em"></span>
+          <span style="font-size:.65rem;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;font-weight:600">Offline</span>
+        </div>
+        <button id="theme-toggle" class="btn-icon" title="Toggle theme">☀️</button>
+      </div>
+    </header>
+
+    <!-- ═══ PAGE: DASHBOARD ═══ -->
+    <section id="page-dashboard" class="page-section">
+      <div class="page-body">
+        <div class="toolbar" style="margin-bottom:20px">
+          <select id="dash-month" class="form-control" style="width:auto"></select>
+          <select id="dash-year"  class="form-control" style="width:auto"></select>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card" style="--stat-color:var(--accent);--stat-bg:var(--accent-glow)">
+            <div class="stat-icon">👥</div>
+            <div class="stat-label">Total Members</div>
+            <div class="stat-value" id="stat-members">—</div>
+            <div class="stat-sub">Registered members</div>
+          </div>
+          <div class="stat-card" style="--stat-color:var(--success);--stat-bg:var(--success-bg)">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Monthly Collection</div>
+            <div class="stat-value" id="stat-month-col">—</div>
+            <div class="stat-sub"><span id="stat-month-paid">—</span> · <span id="stat-month-unpaid">—</span></div>
+          </div>
+
+          <div class="stat-card" style="--stat-color:var(--info);--stat-bg:var(--info-bg)">
+            <div class="stat-icon">🏦</div>
+            <div class="stat-label">Total Collected</div>
+            <div class="stat-value" id="stat-total">—</div>
+            <div class="stat-sub">All-time payments</div>
+          </div>
+
+          <div class="stat-card" style="--stat-color:#2dffc7;--stat-bg:rgba(0,212,170,0.1)">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Extra Collections</div>
+            <div class="stat-value" id="stat-extra">—</div>
+            <div class="stat-sub">Special collections</div>
+          </div>
+
+          <div class="stat-card" style="--stat-color:var(--danger);--stat-bg:var(--danger-bg)">
+            <div class="stat-icon">💸</div>
+            <div class="stat-label">Total Expenses</div>
+            <div class="stat-value" id="stat-expenses">—</div>
+            <div class="stat-sub">All recorded expenses</div>
+          </div>
+
+          <div class="stat-card" id="stat-balance-card" style="--stat-color:var(--success);--stat-bg:var(--success-bg)">
+            <div class="stat-icon">⚖️</div>
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-value" id="stat-balance">—</div>
+            <div class="stat-sub">Collection + Extra − Expenses</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card" style="grid-column:1/-1">
+            <div class="chart-header">
+              <div><div class="chart-title">Monthly Collections</div><div class="chart-sub">Paid vs Unpaid by month</div></div>
+            </div>
+            <canvas id="chart-monthly"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Payment Status</div><div class="chart-sub">This month — Paid vs Unpaid</div></div>
+            </div>
+            <canvas id="chart-donut"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: MEMBERS ═══ -->
+    <section id="page-members" class="page-section">
+      <div class="page-body">
+        <div class="toolbar">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="member-search" placeholder="Search by name, ID, mobile…">
+          </div>
+          <span class="spacer"></span>
+          <span id="member-count" style="font-size:.85rem;color:var(--text-muted)"></span>
+          <button id="members-csv-btn" class="btn btn-secondary">⬇ CSV</button>
+          <button id="add-member-btn" class="btn btn-primary">➕ Add Member</button>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table id="members-table" class="table-responsive">
+              <thead><tr>
+                <th data-sort="memberId">ID</th>
+                <th data-sort="fullName">Full Name</th>
+                <th data-sort="mobile">Mobile</th>
+                <th data-sort="nid">NID</th>
+                <th data-sort="joinDate">Join Date</th>
+                <th data-sort="status">Status</th>
+                <th>Actions</th>
+              </tr></thead>
+              <tbody id="members-tbody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span></span>
+            <div class="pagination" id="member-pagination"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: MEMBER PROFILE (DEDICATED) ═══ -->
+    <section id="page-member-profile" class="page-section">
+      <div class="page-body">
+        <div class="profile-header-actions" style="display:flex; justify-content:space-between; margin-bottom: 20px;">
+          <button class="btn btn-secondary" onclick="App.navigate('members')">◀ Back to Members</button>
+          <div style="display:flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="window.printProfile()">🖨️ Print</button>
+            <button class="btn btn-primary" onclick="window.exportProfilePDF()">📄 Download PDF</button>
+          </div>
+        </div>
+        <div id="profile-printable-area" class="profile-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: COLLECTIONS REPORT ═══ -->
+    <section id="page-collections" class="page-section">
+      <div class="page-body">
+        <div class="toolbar">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="coll-search" placeholder="Search member…">
+          </div>
+          <span class="spacer"></span>
+          <button id="coll-csv-btn" class="btn btn-secondary">⬇ CSV</button>
+          <button class="btn btn-secondary" onclick="window.print()">🖨️ Print Report</button>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table id="coll-table" class="table-responsive">
+              <thead><tr>
+                <th>ID</th><th>Name</th><th>Monthly Total Paid</th>
+              </tr></thead>
+              <tbody id="coll-tbody"></tbody>
+              <tfoot id="coll-tfoot" style="background:var(--bg-card); font-weight:bold; color:var(--accent)"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: MONTHLY PAYMENTS ═══ -->
+    <section id="page-monthly" class="page-section">
+      <div class="page-body">
+        <div class="toolbar">
+          <select id="mp-month" class="form-control" style="width:auto"></select>
+          <select id="mp-year"  class="form-control" style="width:auto"></select>
+          <select id="mp-status" class="form-control" style="width:auto">
+            <option value="">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+          </select>
+          <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="mp-search" placeholder="Search member…"></div>
+          <span class="spacer"></span>
+          <button class="btn btn-secondary" onclick="window.print()" style="margin-right:8px">🖨️ Print Sheet</button>
+          <button id="mp-csv-btn" class="btn btn-secondary" style="margin-right:8px">⬇ CSV</button>
+          <button id="mp-gen-btn" class="btn btn-primary">⚡ Generate</button>
+        </div>
+        <div id="mp-summary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table class="table-responsive"><thead><tr>
+              <th>ID</th><th>Name</th><th>Total Paid</th><th>Period</th><th>Amount</th><th>Status</th><th>Paid On</th><th class="print-hide">Actions</th>
+            </tr></thead>
+            <tbody id="mp-tbody"></tbody></table>
+          </div>
+          <div class="table-footer">
+            <span></span>
+            <div class="pagination" id="mp-pagination"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+    <!-- ═══ PAGE: EXPENSES ═══ -->
+    <section id="page-expenses" class="page-section">
+      <div class="page-body">
+
+        <!-- Financial Summary Cards -->
+        <div class="stat-grid" style="margin-bottom:24px">
+          <div class="stat-card" style="--stat-color:var(--info);--stat-bg:var(--info-bg)">
+            <div class="stat-icon">🏦</div>
+            <div class="stat-label">Total Collection</div>
+            <div class="stat-value" id="exp-stat-collection">—</div>
+            <div class="stat-sub">All-time payments received</div>
+          </div>
+          <div class="stat-card" style="--stat-color:var(--danger);--stat-bg:rgba(239,68,68,.1)">
+            <div class="stat-icon">💸</div>
+            <div class="stat-label">Total Expenses</div>
+            <div class="stat-value" id="exp-stat-expenses">—</div>
+            <div class="stat-sub">All recorded expenses</div>
+          </div>
+          <div class="stat-card" id="exp-balance-card" style="--stat-color:var(--success);--stat-bg:var(--success-bg)">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-value" id="exp-stat-balance">—</div>
+            <div class="stat-sub">Collection − Expenses</div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar" style="flex-wrap:wrap;gap:8px">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="exp-search" placeholder="Search description or category…">
+          </div>
+          <input type="date" id="exp-date-from" class="form-control" style="width:auto" title="From date">
+          <input type="date" id="exp-date-to"   class="form-control" style="width:auto" title="To date">
+          <button id="exp-reset-filter" class="btn btn-secondary">✕ Reset</button>
+          <span class="spacer"></span>
+          <button id="exp-csv-btn" class="btn btn-secondary">⬇ CSV</button>
+          <button id="exp-add-btn" class="btn btn-primary">➕ Add Expense</button>
+        </div>
+
+        <div id="exp-total-badge" style="margin-bottom:12px"></div>
+
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table class="table-responsive">
+              <thead><tr>
+                <th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th class="print-hide">Actions</th>
+              </tr></thead>
+              <tbody id="exp-tbody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span></span>
+            <div class="pagination" id="exp-pagination"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: HISTORY ═══ -->
+    <section id="page-history" class="page-section">
+      <div class="page-body">
+        <div class="toolbar" style="flex-wrap:wrap">
+          <select id="hist-type" class="form-control" style="width:auto">
+            <option value="monthly">Monthly</option>
+
+          </select>
+          <select id="hist-member" class="form-control" style="width:auto"><option value="">All Members</option></select>
+          <select id="hist-status" class="form-control" style="width:auto">
+            <option value="">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+          </select>
+          <select id="hist-year" class="form-control" style="width:auto"><option value="">All Years</option></select>
+          <span id="hist-month-wrap">
+            <select id="hist-month" class="form-control" style="width:auto"><option value="">All Months</option></select>
+          </span>
+          <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="hist-search" placeholder="Search…"></div>
+        </div>
+        <div id="hist-summary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table class="table-responsive"><thead id="hist-thead"></thead><tbody id="hist-tbody"></tbody></table>
+          </div>
+          <div class="table-footer">
+            <span></span>
+            <div class="pagination" id="hist-pagination"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: EXTRA COLLECTIONS ═══ -->
+    <section id="page-extras" class="page-section">
+      <div class="page-body">
+
+        <!-- Summary Cards -->
+        <div class="stat-grid" style="margin-bottom:24px">
+          <div class="stat-card" style="--stat-color:var(--success);--stat-bg:var(--success-bg)">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">মোট এক্সট্রা আয়</div>
+            <div class="stat-value" id="extra-stat-total">—</div>
+            <div class="stat-sub" id="extra-stat-count">সব রেকর্ড</div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar" style="flex-wrap:wrap;gap:8px">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="extra-search" placeholder="বিবরণ বা ক্যাটাগরি খুঁজুন…">
+          </div>
+          <input type="date" id="extra-date-from" class="form-control" style="width:auto" title="From date">
+          <input type="date" id="extra-date-to"   class="form-control" style="width:auto" title="To date">
+          <button id="extra-reset-filter" class="btn btn-secondary">✕ Reset</button>
+          <span class="spacer"></span>
+          <button id="extra-csv-btn" class="btn btn-secondary">⬇ CSV</button>
+          <button id="extra-add-btn" class="btn btn-primary">➕ এক্সট্রা টাকা যোগ করুন</button>
+        </div>
+
+        <div id="extra-total-badge" style="margin-bottom:12px"></div>
+
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table class="table-responsive">
+              <thead><tr>
+                <th>তারিখ</th><th>ক্যাটাগরি</th><th>বিবরণ</th><th>পরিমাণ</th><th class="print-hide">Actions</th>
+              </tr></thead>
+              <tbody id="extra-tbody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span></span>
+            <div class="pagination" id="extra-pagination"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: EXPORT ═══ -->
+    <section id="page-export" class="page-section">
+      <div class="page-body">
+        <p style="color:var(--text-secondary);margin-bottom:24px;max-width:600px">Download your data in JSON (full backup) or CSV format compatible with Excel and Google Sheets.</p>
+        <div class="export-grid">
+          <div class="export-card" id="exp-json-btn">
+            <div class="export-icon">🗄️</div>
+            <div class="export-title">Full JSON Backup</div>
+            <div class="export-desc">Members + all payments + settings<br>Re-importable backup</div>
+          </div>
+          <div class="export-card" id="exp-members-btn">
+            <div class="export-icon">👥</div>
+            <div class="export-title">Members CSV</div>
+            <div class="export-desc">All member profiles<br>Excel & Google Sheets ready</div>
+          </div>
+          <div class="export-card" id="exp-monthly-btn">
+            <div class="export-icon">📜</div>
+            <div class="export-title">Payment History CSV</div>
+            <div class="export-desc">All individual payment records<br>Full history with dates</div>
+          </div>
+          <div class="export-card" id="exp-collections-btn">
+            <div class="export-icon">📊</div>
+            <div class="export-title">Collections Report CSV</div>
+            <div class="export-desc">Total paid per member<br>Aggregated summary</div>
+          </div>
+          <div class="export-card" id="exp-monthly-grid-btn">
+            <div class="export-icon">🗓️</div>
+            <div class="export-title">Monthly Payments Grid CSV</div>
+            <div class="export-desc">Members vs Months (Current Year)<br>Matrix format with totals</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: IMPORT ═══ -->
+    <section id="page-import" class="page-section">
+      <div class="page-body">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('tab-json','tab-csv',this)">JSON Backup</button>
+          <button class="tab-btn" onclick="switchTab('tab-csv','tab-json',this)">CSV Members</button>
+        </div>
+
+        <div id="tab-json" class="tab-panel active">
+          <div class="settings-section">
+            <div class="settings-section-title">⬆️ Import JSON Backup</div>
+            <div class="form-group">
+              <label class="form-label">Import Mode</label>
+              <select id="import-mode" class="form-control" style="max-width:280px">
+                <option value="replace">Replace All Data</option>
+                <option value="merge">Merge with Existing</option>
+              </select>
+            </div>
+            <div class="drop-zone" id="json-drop-zone">
+              <input type="file" id="json-file-input" accept=".json">
+              <div class="drop-icon">🗄️</div>
+              <strong>Drop JSON file here or click to browse</strong>
+              <div style="font-size:.8rem;margin-top:6px">Only association-backup-*.json files</div>
+            </div>
+            <div id="json-import-result"></div>
+          </div>
+        </div>
+
+        <div id="tab-csv" class="tab-panel">
+          <div class="settings-section">
+            <div class="settings-section-title">📋 Import Members from CSV</div>
+            <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:16px">
+              CSV must have at minimum a <strong>Name</strong> column. Optional: Mobile, NID, DOB, Address, JoinDate.
+            </p>
+            <div class="drop-zone" id="csv-drop-zone">
+              <input type="file" id="csv-file-input" accept=".csv">
+              <div class="drop-icon">📋</div>
+              <strong>Drop CSV file here or click to browse</strong>
+              <div style="font-size:.8rem;margin-top:6px">UTF-8 encoded CSV file</div>
+            </div>
+            <div id="csv-import-result"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PAGE: SETTINGS ═══ -->
+    <section id="page-settings" class="page-section">
+      <div class="page-body" style="max-width:680px">
+
+        <form id="settings-form">
+          <div class="settings-section">
+            <div class="settings-section-title">💰 Contribution Settings</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="s-monthly-amount">Monthly Contribution (৳)</label>
+                <input type="number" id="s-monthly-amount" class="form-control" min="0" step="50">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="s-app-name">Association Name</label>
+                <input type="text" id="s-app-name" class="form-control">
+              </div>
+            </div>
+
+          </div>
+          <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+        </form>
+
+        <br>
+        <form id="password-form">
+          <div class="settings-section">
+            <div class="settings-section-title">🔐 Change Password</div>
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input type="password" id="s-current-pass" class="form-control" autocomplete="current-password">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" id="s-new-pass" class="form-control" autocomplete="new-password">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" id="s-confirm-pass" class="form-control" autocomplete="new-password">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-secondary">🔑 Change Password</button>
+          </div>
+        </form>
+
+        <div class="settings-section" style="border-color:rgba(239,68,68,.3)">
+          <div class="settings-section-title" style="color:var(--danger)">⚠️ Danger Zone</div>
+          <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:16px">Permanently delete all members and payment records. This cannot be undone.</p>
+          <button id="clear-all-btn" class="btn btn-danger">🗑 Clear All Data</button>
+        </div>
+
+      </div>
+    </section>
+
+  </main><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<!-- ═══════════════════ TOAST CONTAINER ═══════════════════ -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════ SLIDE-OVER (Member Profile) ═══════════════════ -->
+<div id="slide-over-overlay">
+  <aside class="slide-over">
+    <div class="slide-over-header">
+      <h3 class="modal-title" id="slide-over-title">Member Profile</h3>
+      <button class="modal-close" id="slide-over-close">✕</button>
+    </div>
+    <div class="slide-over-body" id="slide-over-body"></div>
+  </aside>
+</div>
+
+<!-- ═══════════════════ CONFIRM MODAL ═══════════════════ -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal modal-sm">
+    <div class="modal-body confirm-modal-body" style="padding:32px 24px">
+      <div class="confirm-icon danger">⚠️</div>
+      <h3 id="confirm-title">Confirm</h3>
+      <p id="confirm-message" style="margin-top:8px"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary modal-close">Cancel</button>
+      <button class="btn btn-danger" id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MEMBER MODAL ═══════════════════ -->
+<div class="modal-overlay" id="member-modal">
+  <div class="modal modal-lg" style="max-width:800px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="member-modal-title">➕ Add Member</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body modal-scrollable" style="max-height: 70vh; overflow-y: auto; padding-right: 10px;">
+      <form id="member-form">
+        <input type="hidden" id="member-id-hidden">
+
+        <h4 style="margin:0 0 12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Basic Information</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f-fullName">Full Name *</label>
+            <input type="text" id="f-fullName" class="form-control" placeholder="Enter full name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-mobile">Mobile Number</label>
+            <input type="tel" id="f-mobile" class="form-control" placeholder="01XXXXXXXXX">
+          </div>
+        </div>
+        <div class="form-row" style="gap:8px">
+          <div class="form-group">
+            <label class="form-label" for="f-dob">Date of Birth</label>
+            <input type="date" id="f-dob" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-gender">Gender</label>
+            <select id="f-gender" class="form-control">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Identity Information</h4>
+        <div class="form-group">
+          <label class="form-label" for="f-nid">NID Number</label>
+          <input type="text" id="f-nid" class="form-control" placeholder="National ID">
+        </div>
+
+        <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Family Information</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f-father">Father's Name</label>
+            <input type="text" id="f-father" class="form-control" placeholder="Father's name">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-mother">Mother's Name</label>
+            <input type="text" id="f-mother" class="form-control" placeholder="Mother's name">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-spouse">Spouse Name</label>
+          <input type="text" id="f-spouse" class="form-control" placeholder="Spouse name (if applicable)">
+        </div>
+
+        <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Address Information</h4>
+        <div class="form-group">
+          <label class="form-label" for="f-present-address">Present Address</label>
+          <input type="text" id="f-present-address" class="form-control" placeholder="Present Address">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-permanent-address">Permanent Address</label>
+          <input type="text" id="f-permanent-address" class="form-control" placeholder="Permanent Address">
+        </div>
+
+        <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">🔹 Membership Info</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f-joinDate">Join Date</label>
+            <input type="date" id="f-joinDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-status">Status</label>
+            <select id="f-status" class="form-control">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <h4 style="margin:12px 0;color:var(--accent);font-size:0.9rem;border-bottom:1px solid var(--border);padding-bottom:6px">📸 Documents (Image Upload)</h4>
+        <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          <!-- Member Photo -->
+          <div class="form-group">
+            <label class="form-label">Member Photo (JPG/PNG)</label>
+            <div class="image-upload-wrapper" id="wrap-f-photo">
+              <input type="file" id="f-photo" accept="image/png, image/jpeg" style="display:none">
+              <div class="image-preview" id="preview-f-photo" style="border:1px dashed var(--border); border-radius:var(--radius-sm); height:140px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg-card); position:relative; overflow:hidden;">
+                <span class="img-placeholder" style="color:var(--text-muted); pointer-events:none;">Click to upload</span>
+                <img src="" id="img-f-photo" style="display:none; width:100%; height:100%; object-fit:cover;">
+                <button type="button" class="btn-icon btn-danger remove-img-btn" id="rm-f-photo" style="display:none;position:absolute;top:4px;right:4px;width:30px;height:30px;font-size:12px;">✕</button>
+              </div>
+            </div>
+          </div>
+          <!-- NID Front -->
+          <div class="form-group">
+            <label class="form-label">NID Front</label>
+            <div class="image-upload-wrapper" id="wrap-f-nidFront">
+              <input type="file" id="f-nidFront" accept="image/png, image/jpeg" style="display:none">
+              <div class="image-preview" id="preview-f-nidFront" style="border:1px dashed var(--border); border-radius:var(--radius-sm); height:140px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg-card); position:relative; overflow:hidden;">
+                <span class="img-placeholder" style="color:var(--text-muted); pointer-events:none;">Click to upload</span>
+                <img src="" id="img-f-nidFront" style="display:none; width:100%; height:100%; object-fit:cover;">
+                <button type="button" class="btn-icon btn-danger remove-img-btn" id="rm-f-nidFront" style="display:none;position:absolute;top:4px;right:4px;width:30px;height:30px;font-size:12px;">✕</button>
+              </div>
+            </div>
+          </div>
+          <!-- NID Back -->
+          <div class="form-group">
+            <label class="form-label">NID Back</label>
+            <div class="image-upload-wrapper" id="wrap-f-nidBack">
+              <input type="file" id="f-nidBack" accept="image/png, image/jpeg" style="display:none">
+              <div class="image-preview" id="preview-f-nidBack" style="border:1px dashed var(--border); border-radius:var(--radius-sm); height:140px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg-card); position:relative; overflow:hidden;">
+                <span class="img-placeholder" style="color:var(--text-muted); pointer-events:none;">Click to upload</span>
+                <img src="" id="img-f-nidBack" style="display:none; width:100%; height:100%; object-fit:cover;">
+                <button type="button" class="btn-icon btn-danger remove-img-btn" id="rm-f-nidBack" style="display:none;position:absolute;top:4px;right:4px;width:30px;height:30px;font-size:12px;">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="padding:16px 0 0 0; margin-top:20px; border-top:1px solid var(--border)">
+          <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+          <button type="submit" class="btn btn-primary">💾 Save Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MONTHLY PAY MODAL ═══════════════════ -->
+<div class="modal-overlay" id="mp-pay-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">💳 Record Payment</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:16px">Mark payment as <strong>Paid</strong> for <span id="mp-pay-member" style="color:var(--accent)"></span></p>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px">Amount: <strong id="mp-pay-amount"></strong></p>
+      <form id="mp-pay-form">
+        <input type="hidden" id="mp-pay-id">
+        <div class="form-group">
+          <label class="form-label">Payment Date *</label>
+          <input type="date" id="mp-pay-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (optional)</label>
+          <input type="text" id="mp-pay-notes" class="form-control" placeholder="Any note…">
+        </div>
+        <div class="modal-footer" style="padding:0;border:none">
+          <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+          <button type="submit" class="btn btn-success">✅ Mark Paid</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MONTHLY EDIT MODAL ═══════════════════ -->
+<div class="modal-overlay" id="mp-edit-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">✏️ Edit Payment</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="mp-edit-form">
+        <input type="hidden" id="mp-edit-id">
+        <div class="form-group">
+          <label class="form-label">Amount (৳)</label>
+          <input type="number" id="mp-edit-amount" class="form-control" min="0" step="50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <input type="text" id="mp-edit-notes" class="form-control">
+        </div>
+        <div class="modal-footer" style="padding:0;border:none">
+          <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ═══════════════════ EXPENSE MODAL ═══════════════════ -->
+<div class="modal-overlay" id="expense-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title" id="exp-modal-title">➕ Add Expense</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="exp-form">
+        <input type="hidden" id="exp-id-hidden">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date *</label>
+            <input type="date" id="exp-f-date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="exp-f-category" class="form-control">
+              <option value="General">General</option>
+              <option value="Rent">Rent</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Event">Event</option>
+              <option value="Office">Office Supplies</option>
+              <option value="Transport">Transport</option>
+              <option value="Food">Food &amp; Refreshment</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description *</label>
+          <input type="text" id="exp-f-description" class="form-control" placeholder="Where and why was the money spent?" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (৳) *</label>
+          <input type="number" id="exp-f-amount" class="form-control" min="1" step="1" placeholder="0" required>
+        </div>
+        <div class="modal-footer" style="padding:16px 0 0 0;border:none">
+          <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+          <button type="submit" class="btn btn-danger">💾 Save Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ EXTRA COLLECTIONS MODAL ═══════════════════ -->
+<div class="modal-overlay" id="extra-income-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title" id="extra-modal-title">➕ এক্সট্রা টাকা যোগ করুন</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="extra-form">
+        <input type="hidden" id="extra-id-hidden">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">তারিখ *</label>
+            <input type="date" id="extra-f-date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ক্যাটাগরি</label>
+            <select id="extra-f-category" class="form-control">
+              <option>বিশেষ চাঁদা</option>
+              <option>দান / অনুদান</option>
+              <option>ব্যাংক সুদ</option>
+              <option>জরিমানা</option>
+              <option>ইভেন্ট আয়</option>
+              <option>সদস্যতা ফি</option>
+              <option>অন্যান্য</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">বিবরণ *</label>
+          <input type="text" id="extra-f-description" class="form-control" placeholder="কোথা থেকে এলো / কী কারণে" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">পরিমাণ (৳) *</label>
+          <input type="number" id="extra-f-amount" class="form-control" min="1" step="1" placeholder="0" required>
+        </div>
+        <div class="modal-footer" style="padding:16px 0 0 0;border:none">
+          <button type="button" class="btn btn-secondary modal-close">বাতিল</button>
+          <button type="submit" class="btn btn-success">💾 সংরক্ষণ করুন</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+<script src="lib/dexie.min.js"></script>
+<script src="lib/chart.min.js"></script>
+<script src="lib/html2pdf.bundle.min.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/members.js"></script>
+<script src="js/collections.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/payments.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/history.js"></script>
+<script src="js/export.js"></script>
+<script src="js/import.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/expenses.js"></script>
+<script src="js/extras.js"></script>
+
+<script>
+// ── Global tab switcher ──
+function switchTab(showId, hideId, btn) {
+  document.getElementById(showId).classList.add('active');
+  document.getElementById(hideId).classList.remove('active');
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Live clock ──
+function updateClock() {
+  const el = document.getElementById('current-time');
+  if (el) el.textContent = new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── PWA Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(r => console.log('SW registered'))
+      .catch(e => console.log('SW failed:', e));
+  });
+}
+
+// ── Boot ──
+window.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+
+</body>
+</html>
