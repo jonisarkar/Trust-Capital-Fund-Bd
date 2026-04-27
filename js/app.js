@@ -82,91 +82,49 @@ const App = (() => {
     const sidebar = document.getElementById('sidebar');
     const content = document.getElementById('main-content');
     const toggle  = document.getElementById('sidebar-toggle');
-    const menuToggle = document.getElementById('menu-toggle');
-    const backdrop   = document.getElementById('sidebar-backdrop');
 
-    if (!sidebar || !content) return;
-
-    // Desktop Toggle (Collapsed/Expanded)
-    toggle?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isCollapsed = sidebar.classList.toggle('collapsed');
-      content.classList.toggle('sidebar-collapsed', isCollapsed);
-      localStorage.setItem('sidebar_collapsed', isCollapsed);
+    toggle?.addEventListener('click', () => {
+      const collapsed = sidebar.classList.toggle('collapsed');
+      content.classList.toggle('sidebar-collapsed', collapsed);
+      localStorage.setItem('sidebar_collapsed', collapsed);
     });
 
-    // Mobile Toggle (Open/Close Drawer)
-    const toggleMobileMenu = (forceState) => {
-      const isOpen = forceState !== undefined ? forceState : !sidebar.classList.contains('mobile-open');
-      sidebar.classList.toggle('mobile-open', isOpen);
-      backdrop?.classList.toggle('active', isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    };
-
-    menuToggle?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleMobileMenu();
-    });
-
-    backdrop?.addEventListener('click', () => toggleMobileMenu(false));
-
-    // Restore Desktop State
     const wasCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
-    if (wasCollapsed && window.innerWidth > 1024) {
+    if (wasCollapsed) {
       sidebar.classList.add('collapsed');
       content.classList.add('sidebar-collapsed');
     }
 
-    // Nav Item Clicks (Event Delegation for reliability)
-    sidebar?.addEventListener('click', (e) => {
-      const el = e.target.closest('.nav-item[data-page]');
-      if (!el) return;
-      
-      const page = el.dataset.page;
-      if (page) {
-        navigate(page);
-        if (window.innerWidth <= 1024) {
-          toggleMobileMenu(false);
-        }
-      }
+    // hamburger for mobile
+    const menuToggle = document.getElementById('menu-toggle');
+    const backdrop   = document.getElementById('sidebar-backdrop');
+    
+    const closeMobileMenu = () => {
+      sidebar.classList.remove('mobile-open');
+      backdrop.classList.remove('active');
+    };
+
+    menuToggle?.addEventListener('click', () => {
+      const isOpen = sidebar.classList.toggle('mobile-open');
+      backdrop.classList.toggle('active', isOpen);
     });
 
-    // Requested Fix 4: Touch events on sidebar items
-    sidebar?.addEventListener('touchend', (e) => {
-      const item = e.target.closest('.nav-item, .sidebar a, .sidebar button');
-      if (item) {
-        e.stopPropagation();
-        item.click();
-      }
-    });
-
-    // Sidebar item-এ touch করলে যেন dim না হয় (Requested Fix)
-    sidebar?.addEventListener('touchstart', (e) => {
-      const item = e.target.closest('.nav-item, .sidebar a, .sidebar button');
-      if (item) {
-        e.stopPropagation(); // Overlay-এ touch যেতে দেবে না
-      }
-    }, { passive: true });
-
-    // Requested Fix 2: Prevent overlay from blocking sidebar touches
+    backdrop?.addEventListener('click', closeMobileMenu);
     backdrop?.addEventListener('touchend', (e) => {
       e.stopPropagation();
-      toggleMobileMenu(false);
+      closeMobileMenu();
     });
 
-    // Handle window resize
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 1024) {
-        toggleMobileMenu(false);
-        // Ensure desktop state is applied correctly when scaling up
-        const isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
-        sidebar.classList.toggle('collapsed', isCollapsed);
-        content.classList.toggle('sidebar-collapsed', isCollapsed);
-      } else {
-        // Remove desktop classes on mobile to prevent layout issues
-        sidebar.classList.remove('collapsed');
-        content.classList.remove('sidebar-collapsed');
-      }
+    // nav click & touch
+    document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+      const handleNav = (e) => {
+        if (e.type === 'touchend') e.stopPropagation();
+        navigate(el.dataset.page);
+        if (window.innerWidth <= 1024) closeMobileMenu();
+      };
+      
+      el.addEventListener('click', handleNav);
+      el.addEventListener('touchend', handleNav);
     });
   }
 
